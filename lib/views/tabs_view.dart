@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'placeholder_widget.dart';
-import 'home_view.dart';
+import 'package:i_am_rich/views/home_view.dart';
 import 'schedule_view.dart';
-import 'map_view.dart';
-import 'profile_view.dart';
-import 'login_view.dart';
+import 'package:i_am_rich/views/map_view.dart';
+import 'package:i_am_rich/views/profile_view.dart';
+import 'package:i_am_rich/views/login_view.dart';
 import 'dart:async';
-import 'authentication.dart';
+import 'package:i_am_rich/services/auth_service.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:i_am_rich/models/user.dart';
 
 class TabsView extends StatefulWidget {
-  TabsView({Key key, this.auth, this.userId, this.logoutCallback})
+  TabsView({Key key, this.auth, this.user, this.logoutCallback})
     : super(key: key);
 
   final BaseAuth auth;
   final VoidCallback logoutCallback;
-  final String userId;
+  final User user;
 
   @override
   State<StatefulWidget> createState() => new _TabsState();
@@ -48,14 +48,17 @@ class _TabsState extends State<TabsView> {
           BottomNavigationBarItem(
             icon: new Icon(Icons.calendar_today),
             title: Text('Schedule'),
+            backgroundColor: Colors.blueGrey[900],
           ),
           BottomNavigationBarItem(
             icon: new Icon(Icons.map),
             title: Text('Map'),
+            backgroundColor: Colors.blueGrey[900],
           ),
           BottomNavigationBarItem(
             icon: new Icon(Icons.account_circle),
             title: Text('Profile'),
+            backgroundColor: Colors.blueGrey[900],
           ),
         ],
       ),
@@ -77,7 +80,7 @@ class _TabsState extends State<TabsView> {
           return _currentView =  MapView();
         }
         case 3: {
-          return _currentView =  ProfileView(auth: widget.auth, userId: widget.userId, logoutCallback: widget.logoutCallback);
+          return _currentView =  ProfileView(auth: widget.auth, user: widget.user, logoutCallback: widget.logoutCallback);
         }
         default: {
           return _currentView = LoginView();

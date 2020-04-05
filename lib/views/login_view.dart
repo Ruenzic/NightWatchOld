@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'authentication.dart';
+import 'package:i_am_rich/services/auth_service.dart';
+import 'package:i_am_rich/models/user.dart';
 
 class LoginView extends StatefulWidget {
   LoginView({this.auth, this.loginCallback});
@@ -25,7 +26,6 @@ class _LoginState extends State<LoginView> {
   String _password;
   String _errorMessage;
 
-
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +37,7 @@ class _LoginState extends State<LoginView> {
           showForm(),
           showCircularProgress(),
         ],
-      )
+      ),
     );
   }
 
@@ -97,11 +97,10 @@ class _LoginState extends State<LoginView> {
     );
   }
 
-  getFormHeight(){
+  getFormHeight() {
     if (_isLoginForm) {
       return const EdgeInsets.fromLTRB(0.0, 100.0, 0.0, 0.0);
-    }
-    else{
+    } else {
       return const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0);
     }
   }
@@ -145,27 +144,27 @@ class _LoginState extends State<LoginView> {
 
   Widget showPrimaryButton() {
     return new Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
-      child: SizedBox(
-        height: 40.0,
-        child: new RaisedButton(
-          elevation: 5.0,
-          shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
-          color: Colors.blue,
-          child: new Text(_isLoginForm ? 'Login' : 'Create account',
-              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
-          onPressed: validateAndSubmit,
-        ),
-      ));
+        padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+        child: SizedBox(
+          height: 40.0,
+          child: new RaisedButton(
+            elevation: 5.0,
+            shape: new RoundedRectangleBorder(
+                borderRadius: new BorderRadius.circular(30.0)),
+            color: Colors.blue,
+            child: new Text(_isLoginForm ? 'Login' : 'Create account',
+                style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+            onPressed: validateAndSubmit,
+          ),
+        ));
   }
 
   Widget showSecondaryButton() {
     return new FlatButton(
-      child: new Text(
-          _isLoginForm ? 'Create an account' : 'Have an account? Sign in',
-          style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
-      onPressed: toggleFormMode);
+        child: new Text(
+            _isLoginForm ? 'Create an account' : 'Have an account? Sign in',
+            style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
+        onPressed: toggleFormMode);
   }
 
   void toggleFormMode() {
@@ -211,9 +210,9 @@ class _LoginState extends State<LoginView> {
               showErrorMessage(),
             ],
           ),
-        ));
-    }
-    else{
+        ),
+      );
+    } else {
       return new Container(
         padding: EdgeInsets.all(16.0),
         child: new Form(
@@ -230,7 +229,8 @@ class _LoginState extends State<LoginView> {
               showErrorMessage(),
             ],
           ),
-        ));
+        ),
+      );
     }
   }
 
@@ -242,12 +242,15 @@ class _LoginState extends State<LoginView> {
     });
     if (validateAndSave()) {
       String userId = "";
+      User user;
       try {
         if (_isLoginForm) {
-          userId = await widget.auth.signIn(_email, _password);
+          user = await widget.auth.signIn(_email, _password);
+          userId = user.userId;
           print('Signed in: $userId');
         } else {
-          userId = await widget.auth.signUp(_email, _password, _name);
+          user = await widget.auth.signUp(_email, _password, _name);
+          userId = user.userId;
           //widget.auth.sendEmailVerification();
           //_showVerifyEmailSentDialog();
           print('Signed up user: $userId');
@@ -267,8 +270,7 @@ class _LoginState extends State<LoginView> {
 //          _formKey.currentState.reset();
         });
       }
-    }
-    else{
+    } else {
       _isLoading = false;
     }
   }
@@ -282,6 +284,4 @@ class _LoginState extends State<LoginView> {
     }
     return false;
   }
-
-
 }

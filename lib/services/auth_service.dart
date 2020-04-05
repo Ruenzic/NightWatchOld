@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:i_am_rich/models/user.dart';
 
 abstract class BaseAuth {
-  Future<String> signIn(String email, String password);
+  Future<User> signIn(String email, String password);
 
-  Future<String> signUp(String email, String password, String name);
+  Future<User> signUp(String email, String password, String name);
 
-  Future<FirebaseUser> getCurrentUser();
+  Future<User> getCurrentUser();
+
+  Future<FirebaseUser> getFirebaseUser();
 
   Future<void> sendEmailVerification();
 
@@ -15,26 +18,37 @@ abstract class BaseAuth {
   Future<bool> isEmailVerified();
 }
 
-class Auth implements BaseAuth {
+class AuthService implements BaseAuth {
+
+  // Create User object based on FirebaseUser
+  User _userFromFirebaseUser(FirebaseUser user){
+    return user != null ? User(userId: user.uid, userName: user.displayName): null;
+  }
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  Future<String> signIn(String email, String password) async {
+  Future<User> signIn(String email, String password) async {
     AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
     print(user);
-    return user.uid;
+    return _userFromFirebaseUser(user);
   }
 
-  Future<String> signUp(String email, String password, String name) async {
+  Future<User> signUp(String email, String password, String name) async {
     AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
     await user.updateProfile(UserUpdateInfo()..displayName = name);
-    return user.uid;
+    return _userFromFirebaseUser(user);
   }
 
-  Future<FirebaseUser> getCurrentUser() async {
+  Future<User> getCurrentUser() async {
+    FirebaseUser user = await _firebaseAuth.currentUser();
+    return _userFromFirebaseUser(user);
+  }
+
+  Future<FirebaseUser> getFirebaseUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
     return user;
   }

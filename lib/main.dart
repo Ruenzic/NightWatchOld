@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'authentication.dart';
+import 'package:i_am_rich/services/auth_service.dart';
 import 'root_page.dart';
 
 void main() {
@@ -15,6 +15,6 @@ class Main extends StatelessWidget {
         theme: new ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: new RootPage(auth: new Auth()));
+        home: new RootPage(auth: new AuthService()));
   }
 }

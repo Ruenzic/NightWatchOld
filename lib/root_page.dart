@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'login_view.dart';
-import 'authentication.dart';
-import 'tabs_view.dart';
+import 'package:i_am_rich/views/login_view.dart';
+import 'package:i_am_rich/services/auth_service.dart';
+import 'package:i_am_rich/views/tabs_view.dart';
+import 'package:i_am_rich/models/user.dart';
 
 enum AuthStatus {
   NOT_DETERMINED,
@@ -20,7 +21,8 @@ class RootPage extends StatefulWidget {
 
 class _RootPageState extends State<RootPage> {
   AuthStatus authStatus = AuthStatus.NOT_DETERMINED;
-  String _userId = "";
+  String _userId;
+  User _user;
 
   @override
   void initState() {
@@ -28,10 +30,11 @@ class _RootPageState extends State<RootPage> {
     widget.auth.getCurrentUser().then((user) {
       setState(() {
         if (user != null) {
-          _userId = user?.uid;
+          _userId = user?.userId;
+          _user = user;
         }
         authStatus =
-        user?.uid == null ? AuthStatus.NOT_LOGGED_IN : AuthStatus.LOGGED_IN;
+        user?.userId == null ? AuthStatus.NOT_LOGGED_IN : AuthStatus.LOGGED_IN;
       });
     });
   }
@@ -39,7 +42,8 @@ class _RootPageState extends State<RootPage> {
   void loginCallback() {
     widget.auth.getCurrentUser().then((user) {
       setState(() {
-        _userId = user.uid.toString();
+        _userId = user.userId;
+        _user = user;
       });
     });
     setState(() {
@@ -78,7 +82,7 @@ class _RootPageState extends State<RootPage> {
       case AuthStatus.LOGGED_IN:
         if (_userId.length > 0 && _userId != null) {
           return new TabsView(
-            userId: _userId,
+            user: _user,
             auth: widget.auth,
             logoutCallback: logoutCallback,
           );
