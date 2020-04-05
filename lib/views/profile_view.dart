@@ -15,11 +15,10 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileState extends State<ProfileView> {
-
   //  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange,
+      backgroundColor: Color.fromARGB(1, 114, 114, 132),
       body: Stack(
         children: <Widget>[
           showProfile(),
@@ -66,13 +65,19 @@ class _ProfileState extends State<ProfileView> {
     );
   }
 
-  Widget showUserName(){
-    return Center(
-      child: Text(getUserName()),
+  Widget showUserName() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+      child: Center(
+        child: Text(
+          getUserName(),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 25.0),
+        ),
+      ),
     );
   }
 
-  getUserName(){
+  getUserName() {
     return widget.user.userName;
   }
 
@@ -98,5 +103,4 @@ class _ProfileState extends State<ProfileView> {
       print(e);
     }
   }
-
 }
