@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "349054573441",
+    "firebase_url": "https://nightwatch-f8b60.firebaseio.com",
+    "project_id": "nightwatch-f8b60",
+    "storage_bucket": "nightwatch-f8b60.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349054573441:android:5eb73a727614e1f3556680",
+        "android_client_info": {
+          "package_name": "com.joshdibona.i_am_rich"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "349054573441-vl803e0i1tbc4j3be0od9pf7n0rgjes0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCv7unpr2HHILYfIZewVa4IvV8sApUs8OQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "349054573441-vl803e0i1tbc4j3be0od9pf7n0rgjes0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
