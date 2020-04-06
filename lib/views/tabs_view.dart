@@ -10,12 +10,12 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:i_am_rich/models/user.dart';
 
 class TabsView extends StatefulWidget {
-  TabsView({Key key, this.auth, this.user, this.logoutCallback})
+  TabsView({Key key, this.auth, this.userId, this.logoutCallback})
     : super(key: key);
 
   final BaseAuth auth;
   final VoidCallback logoutCallback;
-  final User user;
+  final String userId;
 
   @override
   State<StatefulWidget> createState() => new _TabsState();
@@ -71,7 +71,7 @@ class _TabsState extends State<TabsView> {
       _currentIndex = index;
       switch (index) {
         case 0: {
-          return _currentView = HomeView();
+          return _currentView = HomeView(userId: widget.userId);
         }
         case 1: {
           return _currentView =  ScheduleView();
@@ -80,7 +80,7 @@ class _TabsState extends State<TabsView> {
           return _currentView =  MapView();
         }
         case 3: {
-          return _currentView =  ProfileView(auth: widget.auth, user: widget.user, logoutCallback: widget.logoutCallback);
+          return _currentView =  ProfileView(auth: widget.auth, userId: widget.userId, logoutCallback: widget.logoutCallback);
         }
         default: {
           return _currentView = LoginView();

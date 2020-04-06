@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:i_am_rich/services/auth_service.dart';
 import 'package:i_am_rich/models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginView extends StatefulWidget {
   LoginView({this.auth, this.loginCallback});
@@ -242,15 +243,15 @@ class _LoginState extends State<LoginView> {
     });
     if (validateAndSave()) {
       String userId = "";
-      User user;
+      FirebaseUser user;
       try {
         if (_isLoginForm) {
           user = await widget.auth.signIn(_email, _password);
-          userId = user.userId;
+          userId = user.uid;
           print('Signed in: $userId');
         } else {
           user = await widget.auth.signUp(_email, _password, _name);
-          userId = user.userId;
+          userId = user.uid;
           //widget.auth.sendEmailVerification();
           //_showVerifyEmailSentDialog();
           print('Signed up user: $userId');

@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:i_am_rich/models/user.dart';
+import 'user_service.dart';
 
 abstract class BaseAuth {
-  Future<User> signIn(String email, String password);
+  Future<FirebaseUser> signIn(String email, String password);
 
-  Future<User> signUp(String email, String password, String name);
+  Future<FirebaseUser> signUp(String email, String password, String name);
 
-  Future<User> getCurrentUser();
-
-  Future<FirebaseUser> getFirebaseUser();
-
+  Future<FirebaseUser> getCurrentUser();
+  
   Future<void> sendEmailVerification();
 
   Future<void> signOut();
@@ -21,34 +20,32 @@ abstract class BaseAuth {
 class AuthService implements BaseAuth {
 
   // Create User object based on FirebaseUser
-  User _userFromFirebaseUser(FirebaseUser user){
-    return user != null ? User(userId: user.uid, userName: user.displayName): null;
-  }
+//  User _userFromFirebaseUser(FirebaseUser user){
+//    return user != null ? User(userId: user.uid, userName: user.displayName): null;
+//  }
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  Future<User> signIn(String email, String password) async {
+  Future<FirebaseUser> signIn(String email, String password) async {
     AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
-    print(user);
-    return _userFromFirebaseUser(user);
+//    print(user);
+    return user;
   }
 
-  Future<User> signUp(String email, String password, String name) async {
+  Future<FirebaseUser> signUp(String email, String password, String name) async {
     AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
+    // Create user object on firestore
+    await UserService(userId: user.uid).updateUserName(name);
+    // Update displayName with user name on firebath auth user object
     await user.updateProfile(UserUpdateInfo()..displayName = name);
-    return _userFromFirebaseUser(user);
+    return user;
   }
 
-  Future<User> getCurrentUser() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
-    return _userFromFirebaseUser(user);
-  }
-
-  Future<FirebaseUser> getFirebaseUser() async {
+  Future<FirebaseUser> getCurrentUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
     return user;
   }
@@ -66,4 +63,5 @@ class AuthService implements BaseAuth {
     FirebaseUser user = await _firebaseAuth.currentUser();
     return user.isEmailVerified;
   }
+
 }

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:i_am_rich/services/auth_service.dart';
-import 'package:i_am_rich/widgets/provider_widget.dart';
 import 'package:i_am_rich/models/user.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:i_am_rich/services/user_service.dart';
 
 class ProfileView extends StatefulWidget {
-  ProfileView({this.auth, this.user, this.logoutCallback});
+  ProfileView({this.auth, this.userId, this.logoutCallback, this.user});
 
   final BaseAuth auth;
   final VoidCallback logoutCallback;
+  final String userId;
   final User user;
 
   @override
@@ -17,12 +20,15 @@ class ProfileView extends StatefulWidget {
 class _ProfileState extends State<ProfileView> {
   //  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(1, 114, 114, 132),
-      body: Stack(
-        children: <Widget>[
-          showProfile(),
-        ],
+    return StreamProvider<DocumentSnapshot>.value(
+      value: UserService().user,
+      child: Scaffold(
+        backgroundColor: Color.fromARGB(1, 114, 114, 132),
+        body: Stack(
+          children: <Widget>[
+            showProfile(),
+          ],
+        ),
       ),
     );
   }
@@ -69,16 +75,60 @@ class _ProfileState extends State<ProfileView> {
     return Padding(
       padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
       child: Center(
-        child: Text(
-          getUserName(),
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 25.0),
-        ),
+        child: getUserName(),
       ),
     );
   }
 
-  getUserName() {
-    return widget.user.userName;
+//  getUserName() {
+////    UserService(userId: widget.userId).getData();
+//    return 'test';
+//  }
+
+  Widget getUserName() {
+//    return new StreamBuilder(
+//      stream: UserService(userId: widget.userId).user,
+//      builder: (context, snapshot) {
+//        if (!snapshot.hasData) {
+//          return new Text(
+//            "Loading..",
+//            style: TextStyle(
+//                fontWeight: FontWeight.bold,
+//                color: Colors.white,
+//                fontSize: 25.0),
+//          );
+//        }
+//        var userDocument = snapshot.data;
+//        return new Text(
+//          userDocument["name"],
+//          style: TextStyle(
+//              fontWeight: FontWeight.bold,
+//              color: Colors.white,
+//              fontSize: 25.0),
+//        );
+//      });
+
+    return new FutureBuilder(
+      future: UserService(userId: widget.userId).getData(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return new Text(
+            "Loading..",
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 25.0),
+          );
+        }
+        var userDocument = snapshot.data;
+        return new Text(
+          userDocument["name"],
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 25.0),
+        );
+      });
   }
 
   showProfile() {
