@@ -59,7 +59,7 @@ class _ProfileState extends State<ProfileView> {
           borderRadius: BorderRadius.circular(90.0),
           border: Border.all(
             color: Colors.blueGrey[900],
-            width: 5.0,
+            width: 3.0,
           ),
         ),
       ),
@@ -74,7 +74,7 @@ class _ProfileState extends State<ProfileView> {
           child: new Text(
             "Loading..",
             style: TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white, fontSize: 25.0),
+                fontWeight: FontWeight.bold, color: Colors.black, fontSize: 25.0),
           ),
         ),
       );
@@ -85,7 +85,7 @@ class _ProfileState extends State<ProfileView> {
           child: new Text(
             user.userName,
             style: TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white, fontSize: 25.0),
+                fontWeight: FontWeight.bold, color: Colors.black, fontSize: 25.0),
           ),
         ),
       );

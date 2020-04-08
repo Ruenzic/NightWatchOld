@@ -8,11 +8,12 @@ class WatchGroupService{
 
   final String userId;
 
-  Future updateWatchGroup(String name, List<String> users) async {
+  Future updateWatchGroup(String name, List<String> users, bool isPrivate) async {
     return await watchGroupCollection.add({
       'name': name,
       'admin': userId,
-      'users': users
+      'users': users,
+      'isPrivate': isPrivate
     });
   }
 

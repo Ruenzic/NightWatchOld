@@ -15,8 +15,11 @@ class _HomeState extends State<HomeView> {
   bool _showCreateForm = false;
   final _formKey = new GlobalKey<FormState>();
   String _name;
+  bool _isPrivate = false;
 
   Widget build(BuildContext context) {
+
+
     final user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context);
 
@@ -50,6 +53,7 @@ class _HomeState extends State<HomeView> {
                 shrinkWrap: true,
                 children: <Widget>[
                   showNameInput(),
+//                  showPrivateSwitch(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -240,6 +244,44 @@ class _HomeState extends State<HomeView> {
           ),
         ),
       ],
+    );
+  }
+
+  showPrivateSwitch() {
+    if (_isPrivate == null){
+      return Container(height: 0.0, width: 0.0);
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 20.0, 0.0, 0.0),
+      child: Column(
+        children: <Widget>[
+          Text(
+            'Making your group private will prevent others from being able to find it',
+            style: new TextStyle(
+              fontSize: 18.0,
+//            color: Colors.black,
+            ),
+          ),
+          Row(
+            children: <Widget>[
+              Text(
+                'Private',
+                style: new TextStyle(
+                  fontSize: 18.0,
+//            color: Colors.black,
+                ),
+              ),
+              Switch(
+                  value: _isPrivate,
+                  onChanged: (value) {
+                    setState(() {
+                      _isPrivate = value;
+                    });
+                  }),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
