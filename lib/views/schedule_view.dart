@@ -11,7 +11,7 @@ class _ScheduleState extends State<ScheduleView> {
   //  @override
 
   Widget build(BuildContext context) {
-    return Container(color: Colors.red);
+    return Container();
   }
 
 }

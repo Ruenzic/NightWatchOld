@@ -145,26 +145,28 @@ class _LoginState extends State<LoginView> {
 
   Widget showPrimaryButton() {
     return new Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
-        child: SizedBox(
-          height: 40.0,
-          child: new RaisedButton(
-            elevation: 5.0,
-            shape: new RoundedRectangleBorder(
-                borderRadius: new BorderRadius.circular(30.0)),
-            color: Colors.blue,
-            child: new Text(_isLoginForm ? 'Login' : 'Create account',
-                style: new TextStyle(fontSize: 20.0, color: Colors.white)),
-            onPressed: validateAndSubmit,
-          ),
-        ));
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          elevation: 5.0,
+          shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0)),
+          color: Color.fromRGBO(254,109,64,1),
+          child: new Text(_isLoginForm ? 'Login' : 'Create account',
+              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          onPressed: validateAndSubmit,
+        ),
+      ),
+    );
   }
 
   Widget showSecondaryButton() {
     return new FlatButton(
         child: new Text(
-            _isLoginForm ? 'Create an account' : 'Have an account? Sign in',
-            style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
+          _isLoginForm ? 'Create an account' : 'Have an account? Sign in',
+          style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300),
+        ),
         onPressed: toggleFormMode);
   }
 

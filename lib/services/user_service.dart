@@ -21,9 +21,13 @@ class UserService{
     });
   }
 
+  User _userFromFirestore(DocumentSnapshot user){
+    return user != null ? User(userName: user["name"], watchGroupId: user["watchGroupId"]): null;
+  }
+
   // get user stream
-  Stream<DocumentSnapshot> get user {
-    return userCollection.document(userId).snapshots();
+  Stream<User> get user {
+    return userCollection.document(userId).snapshots().map((DocumentSnapshot user) => _userFromFirestore(user));
   }
 
   Future getData() async {
@@ -33,7 +37,6 @@ class UserService{
   Future<User> userFromData() async {
     DocumentSnapshot userRef = await userCollection.document(userId).get();
     User userInfo = new User(
-        userId: userRef.data["userId"],
         userName: userRef.data["userName"],
         watchGroupId: userRef.data["watchGroupId"]
     );
@@ -43,7 +46,6 @@ class UserService{
 
     return await userCollection.document(userId).get().then((DocumentSnapshot snapshot) {
       return new User(
-          userId: snapshot.data["userId"],
           userName: snapshot.data["userName"],
           watchGroupId: snapshot.data["watchGroupId"]
       );

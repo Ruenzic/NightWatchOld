@@ -8,6 +8,9 @@ import 'dart:async';
 import 'package:i_am_rich/services/auth_service.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:i_am_rich/models/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:i_am_rich/services/user_service.dart';
 
 class TabsView extends StatefulWidget {
   TabsView({Key key, this.auth, this.userId, this.logoutCallback})
@@ -29,38 +32,42 @@ class _TabsState extends State<TabsView> {
   Widget _currentView = HomeView();
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('NightWatch'),
-        backgroundColor: Colors.blueGrey[900],
-      ),
-      body: _currentView,
-      backgroundColor: Colors.blueGrey,
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: onTabTapped,
-        currentIndex: _currentIndex,
-        items: [
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.home),
-            title: Text('Home'),
-            backgroundColor: Colors.blueGrey[900],
-          ),
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.calendar_today),
-            title: Text('Schedule'),
-            backgroundColor: Colors.blueGrey[900],
-          ),
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.map),
-            title: Text('Map'),
-            backgroundColor: Colors.blueGrey[900],
-          ),
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.account_circle),
-            title: Text('Profile'),
-            backgroundColor: Colors.blueGrey[900],
-          ),
-        ],
+
+    return StreamProvider<User>.value(
+      value: UserService(userId: widget.userId).user,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('NightWatch'),
+          backgroundColor: Colors.blueGrey[900],
+        ),
+        body: _currentView,
+        backgroundColor: Colors.white,
+        bottomNavigationBar: BottomNavigationBar(
+          onTap: onTabTapped,
+          currentIndex: _currentIndex,
+          items: [
+            BottomNavigationBarItem(
+              icon: new Icon(Icons.home),
+              title: Text('Home'),
+              backgroundColor: Colors.blueGrey[900],
+            ),
+            BottomNavigationBarItem(
+              icon: new Icon(Icons.calendar_today),
+              title: Text('Schedule'),
+              backgroundColor: Colors.blueGrey[900],
+            ),
+            BottomNavigationBarItem(
+              icon: new Icon(Icons.map),
+              title: Text('Map'),
+              backgroundColor: Colors.blueGrey[900],
+            ),
+            BottomNavigationBarItem(
+              icon: new Icon(Icons.account_circle),
+              title: Text('Profile'),
+              backgroundColor: Colors.blueGrey[900],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -71,7 +78,7 @@ class _TabsState extends State<TabsView> {
       _currentIndex = index;
       switch (index) {
         case 0: {
-          return _currentView = HomeView(userId: widget.userId);
+          return _currentView = HomeView();
         }
         case 1: {
           return _currentView =  ScheduleView();

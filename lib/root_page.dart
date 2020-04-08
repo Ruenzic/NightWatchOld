@@ -5,6 +5,7 @@ import 'package:i_am_rich/views/tabs_view.dart';
 import 'package:i_am_rich/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:i_am_rich/services/user_service.dart';
+import 'package:provider/provider.dart';
 
 enum AuthStatus {
   NOT_DETERMINED,
@@ -71,6 +72,9 @@ class _RootPageState extends State<RootPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final firebaseUser = Provider.of<FirebaseUser>(context);
+
     switch (authStatus) {
       case AuthStatus.NOT_DETERMINED:
         return buildWaitingScreen();
@@ -83,6 +87,7 @@ class _RootPageState extends State<RootPage> {
         break;
       case AuthStatus.LOGGED_IN:
         if (_userId.length > 0 && _userId != null) {
+          print(_userId);
           return new TabsView(
             userId: _userId,
             auth: widget.auth,

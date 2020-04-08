@@ -9,7 +9,7 @@ abstract class BaseAuth {
   Future<FirebaseUser> signUp(String email, String password, String name);
 
   Future<FirebaseUser> getCurrentUser();
-  
+
   Future<void> sendEmailVerification();
 
   Future<void> signOut();
@@ -20,9 +20,14 @@ abstract class BaseAuth {
 class AuthService implements BaseAuth {
 
   // Create User object based on FirebaseUser
-//  User _userFromFirebaseUser(FirebaseUser user){
-//    return user != null ? User(userId: user.uid, userName: user.displayName): null;
-//  }
+  User _userFromFirebaseUser(FirebaseUser user){
+    return user != null ? User(userName: user.displayName, watchGroupId: ''): null;
+  }
+
+  // get user stream
+  Stream<FirebaseUser> get user {
+    return _firebaseAuth.onAuthStateChanged.map((FirebaseUser user) => user);
+  }
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
