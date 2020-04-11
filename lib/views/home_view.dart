@@ -3,6 +3,10 @@ import 'package:i_am_rich/models/user.dart';
 import 'package:i_am_rich/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 
 class HomeView extends StatefulWidget {
   @override
@@ -16,10 +20,15 @@ class _HomeState extends State<HomeView> {
   final _formKey = new GlobalKey<FormState>();
   String _name;
   bool _isPrivate = false;
+  String _formPage = '1';
+  String _location_name;
+  String _location_latitude;
+  String _location_longitude;
+
+//  const kGoogleApiKey = "Api_key";
+//  GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
   Widget build(BuildContext context) {
-
-
     final user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context);
 
@@ -45,30 +54,44 @@ class _HomeState extends State<HomeView> {
             ]),
           );
         } else {
-          return new Container(
-            padding: EdgeInsets.all(16.0),
-            child: new Form(
-              key: _formKey,
-              child: new ListView(
-                shrinkWrap: true,
-                children: <Widget>[
-                  showNameInput(),
-//                  showPrivateSwitch(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      showCancelFormButton(),
-                      showCreateFormButton(),
-                    ],
-                  ),
-//                  showPrimaryButton(),
-//                  showErrorMessage(),
-                ],
-              ),
-            ),
-          );
+          return showForm();
         }
       }
+    }
+  }
+
+  Widget showForm() {
+    return new Container(
+      padding: EdgeInsets.all(16.0),
+      child: new Form(
+        key: _formKey,
+        child: showFormStep()
+      ),
+    );
+  }
+
+  Widget showFormStep() {
+    if (_formPage == '1') {
+      return new ListView(
+        shrinkWrap: true,
+        children: <Widget>[
+          showNameInput(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              showCancelFormButton(),
+              showNextButton(),
+            ],
+          ),
+        ],
+      );
+    } else if (_formPage == '2') {
+      return new ListView(
+        shrinkWrap: true,
+        children: <Widget>[
+
+        ],
+      );
     }
   }
 
@@ -150,6 +173,54 @@ class _HomeState extends State<HomeView> {
         ),
       ),
     );
+  }
+
+  Widget showNextButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          elevation: 5.0,
+          shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0)),
+          color: Color.fromRGBO(254, 109, 64, 1),
+          child: new Text('Next',
+              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          onPressed: nextFormStep,
+        ),
+      ),
+    );
+  }
+
+  Widget showPreviousButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          elevation: 5.0,
+          shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0)),
+          color: Color.fromRGBO(254, 109, 64, 1),
+          child: new Text('Previous',
+              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          onPressed: previousFormStep,
+        ),
+      ),
+    );
+  }
+
+  nextFormStep(){
+    setState(() {
+      _formPage = '2';
+    });
+  }
+
+  previousFormStep(){
+    setState(() {
+      _formPage = '1';
+    });
   }
 
   Widget showCancelFormButton() {
@@ -248,7 +319,7 @@ class _HomeState extends State<HomeView> {
   }
 
   showPrivateSwitch() {
-    if (_isPrivate == null){
+    if (_isPrivate == null) {
       return Container(height: 0.0, width: 0.0);
     }
     return Padding(

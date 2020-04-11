@@ -17,19 +17,57 @@ class _MapState extends State<MapView> {
   Widget build(BuildContext context) {
     final user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context);
-    if (user != null){
-      print('provider user map page');
-      print(user.userName);
+
+    if (user == null) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else {
+      if (user.watchGroupId == null) {
+        return Column(
+          children: <Widget>[
+            Center(
+              child: showImage(),
+            ),
+            Center(
+              child: Text(
+                'You don\'t belong to any watch group',
+                style: new TextStyle(
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+          ],
+        );
+      } else {
+        return Text('would show map here');
+      }
     }
-
-    if (firebaseUser != null){
-      print('provider firebase user map page');
-      print(firebaseUser.uid);
-    }
-
-
-
-    return Container();
   }
 
+  Widget showImage() {
+    return Column(
+      children: <Widget>[
+        Container(
+          child: Image.asset(
+            'assets/no_group.png',
+            width: 150,
+          ),
+        ),
+      ],
+    );
+  }
 }
+
+
+
+
+
+
+
+
+
+

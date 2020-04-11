@@ -41,7 +41,7 @@ class _TabsState extends State<TabsView> {
           backgroundColor: Colors.blueGrey[900],
         ),
         body: _currentView,
-        backgroundColor: Colors.white,
+        backgroundColor: Color.fromRGBO(247, 247, 247, 1),
         bottomNavigationBar: BottomNavigationBar(
           onTap: onTabTapped,
           currentIndex: _currentIndex,
