@@ -3,15 +3,18 @@ import 'package:i_am_rich/models/user.dart';
 import 'package:i_am_rich/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:geocoder/geocoder.dart';
+//import 'package:geocoder/geocoder.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+//import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
 
 class HomeView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new _HomeState();
 }
+
+const kGoogleApiKey = "AIzaSyCv7unpr2HHILYfIZewVa4IvV8sApUs8OQ";
+GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
 class _HomeState extends State<HomeView> {
 //  @override
@@ -20,13 +23,18 @@ class _HomeState extends State<HomeView> {
   final _formKey = new GlobalKey<FormState>();
   String _name;
   bool _isPrivate = false;
-  String _formPage = '1';
+  var _formPage = 1;
   String _location_name;
-  String _location_latitude;
-  String _location_longitude;
+  double _location_latitude;
+  double _location_longitude;
 
-//  const kGoogleApiKey = "Api_key";
-//  GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+  bool _monday = true;
+  bool _tuesday = true;
+  bool _wednesday = true;
+  bool _thursday = true;
+  bool _friday = true;
+  bool _saturday = true;
+  bool _sunday = true;
 
   Widget build(BuildContext context) {
     final user = Provider.of<User>(context);
@@ -63,19 +71,17 @@ class _HomeState extends State<HomeView> {
   Widget showForm() {
     return new Container(
       padding: EdgeInsets.all(16.0),
-      child: new Form(
-        key: _formKey,
-        child: showFormStep()
-      ),
+      child: new Form(key: _formKey, child: showFormStep()),
     );
   }
 
   Widget showFormStep() {
-    if (_formPage == '1') {
+    if (_formPage == 1) {
       return new ListView(
         shrinkWrap: true,
         children: <Widget>[
           showNameInput(),
+          showLocationInput(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -85,14 +91,210 @@ class _HomeState extends State<HomeView> {
           ),
         ],
       );
-    } else if (_formPage == '2') {
+    } else if (_formPage == 2) {
       return new ListView(
         shrinkWrap: true,
         children: <Widget>[
-
+          Text(
+            'On which days of the week do you operate?',
+            overflow: TextOverflow.clip,
+            textAlign: TextAlign.center,
+            style: new TextStyle(
+              fontSize: 20.0,
+              color: new Color(0xFF212121),
+            ),
+          ),
+          monday(),
+          tuesday(),
+          wednesday(),
+          thursday(),
+          friday(),
+          saturday(),
+          sunday(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              showPreviousButton(),
+              showNextButton(),
+            ],
+          ),
         ],
       );
+    } else if (_formPage == 3) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          showPreviousButton(),
+          showNextButton(),
+        ],
+      );
+    } else {
+      return Container(
+        height: 0,
+        width: 0,
+      );
     }
+  }
+
+  Widget monday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _monday,
+            onChanged: (value) {
+              setState(() {
+                _monday = value;
+              });
+            }),
+        Text(
+          'Monday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget tuesday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _tuesday,
+            onChanged: (value) {
+              setState(() {
+                _tuesday = value;
+              });
+            }),
+        Text(
+          'Tuesday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget wednesday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _wednesday,
+            onChanged: (value) {
+              setState(() {
+                _wednesday = value;
+              });
+            }),
+        Text(
+          'Wednesday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget thursday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _thursday,
+            onChanged: (value) {
+              setState(() {
+                _thursday = value;
+              });
+            }),
+        Text(
+          'Thursday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget friday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _friday,
+            onChanged: (value) {
+              setState(() {
+                _friday = value;
+              });
+            }),
+        Text(
+          'Friday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget saturday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _saturday,
+            onChanged: (value) {
+              setState(() {
+                _saturday = value;
+              });
+            }),
+        Text(
+          'Saturday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget sunday() {
+    return Row(
+      children: <Widget>[
+        Checkbox(
+            value: _sunday,
+            onChanged: (value) {
+              setState(() {
+                _sunday = value;
+              });
+            }),
+        Text(
+          'Sunday',
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.left,
+          style: new TextStyle(
+            fontSize: 15.0,
+            color: new Color(0xFF212121),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget welcomeHeading() {
@@ -211,15 +413,15 @@ class _HomeState extends State<HomeView> {
     );
   }
 
-  nextFormStep(){
+  nextFormStep() {
     setState(() {
-      _formPage = '2';
+      _formPage += 1;
     });
   }
 
-  previousFormStep(){
+  previousFormStep() {
     setState(() {
-      _formPage = '1';
+      _formPage -= 1;
     });
   }
 
@@ -316,6 +518,94 @@ class _HomeState extends State<HomeView> {
         ),
       ],
     );
+  }
+
+  Widget showLocationInput() {
+    if (_location_name == null) {
+      return Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+            child: Text(
+              'In what area is your neighbourhood watch?',
+              style: new TextStyle(
+                fontSize: 20.0,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+              child: RaisedButton(
+                onPressed: () async {
+                  Prediction p = await PlacesAutocomplete.show(
+                      context: context, apiKey: kGoogleApiKey);
+                  displayPrediction(p);
+                },
+                child: Text('Find address'),
+              )),
+        ],
+      );
+    }
+    if (_location_name != null) {
+      return Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+            child: Text(
+              'In what area is your neighbourhood watch?',
+              style: new TextStyle(
+                fontSize: 20.0,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Row(
+            children: <Widget>[
+              Text(
+                _location_name,
+                style: new TextStyle(
+                  fontSize: 15.0,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                  child: RaisedButton(
+                    onPressed: () async {
+                      Prediction p = await PlacesAutocomplete.show(
+                          context: context, apiKey: kGoogleApiKey);
+                      displayPrediction(p);
+                    },
+                    child: Text('Change address'),
+                  )),
+            ],
+          ),
+        ],
+      );
+    }
+  }
+
+  Future<Null> displayPrediction(Prediction p) async {
+    if (p != null) {
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId);
+
+      var placeId = p.placeId;
+      double lat = detail.result.geometry.location.lat;
+      double lng = detail.result.geometry.location.lng;
+
+//      var address = await Geocoder.local.findAddressesFromQuery(p.description);
+
+      print(lat);
+      print(lng);
+      _location_latitude = lat;
+      _location_longitude = lng;
+      _location_name = p.description;
+    }
   }
 
   showPrivateSwitch() {
