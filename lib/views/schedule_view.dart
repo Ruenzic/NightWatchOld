@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:i_am_rich/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class ScheduleView extends StatefulWidget {
   @override
@@ -43,7 +44,11 @@ class _ScheduleState extends State<ScheduleView> {
           ],
         );
       } else {
-        return Text('would show map here');
+//        return SfCalendar(
+////          view: CalendarView.month,
+////          monthViewSettings: MonthViewSettings(showAgenda: true),
+////        );
+          return Text('would show calander');
       }
     }
   }

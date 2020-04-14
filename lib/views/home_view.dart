@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 //import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+//import 'package:i_am_rich/widgets/custom_picker_widget.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -35,6 +37,9 @@ class _HomeState extends State<HomeView> {
   bool _friday = true;
   bool _saturday = true;
   bool _sunday = true;
+
+  String _start_time = "Not set";
+  String _end_time = "Not set";
 
   Widget build(BuildContext context) {
     final user = Provider.of<User>(context);
@@ -121,11 +126,172 @@ class _HomeState extends State<HomeView> {
         ],
       );
     } else if (_formPage == 3) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      return Column(
         children: <Widget>[
-          showPreviousButton(),
-          showNextButton(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 20.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Slot Start Time',
+                      overflow: TextOverflow.clip,
+                      textAlign: TextAlign.left,
+                      style: new TextStyle(
+                        fontSize: 15.0,
+                        color: new Color(0xFF212121),
+                      ),
+                    ),
+                  ),
+                  RaisedButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                    elevation: 4.0,
+                    onPressed: () {
+                      DatePicker.showTimePicker(context,
+                          theme: DatePickerTheme(
+                            containerHeight: 210.0,
+                          ),
+                          showTitleActions: true, onConfirm: (time) {
+                        print('confirm $time');
+                        _start_time = '${time.hour} : ${time.minute}';
+                        setState(() {});
+                      },
+                          currentTime: DateTime.parse("1969-07-20 20:30:00Z"),
+                          locale: LocaleType.en);
+                      setState(() {});
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 50.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Container(
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 18.0,
+                                      color: Colors.teal,
+                                    ),
+                                    Text(
+                                      " $_start_time",
+                                      style: TextStyle(
+                                          color: Colors.teal,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.0),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                          Text(
+                            "  Change",
+                            style: TextStyle(
+                                color: Colors.teal,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                    color: Colors.white,
+                  ),
+                  SizedBox(
+                    height: 20.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Slot End Time',
+                      overflow: TextOverflow.clip,
+                      textAlign: TextAlign.left,
+                      style: new TextStyle(
+                        fontSize: 15.0,
+                        color: new Color(0xFF212121),
+                      ),
+                    ),
+                  ),
+                  RaisedButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                    elevation: 4.0,
+                    onPressed: () {
+                      DatePicker.showTimePicker(context,
+                          theme: DatePickerTheme(
+                            containerHeight: 210.0,
+                          ),
+                          showTitleActions: true, onConfirm: (time) {
+                        print('confirm $time');
+                        _end_time = '${time.hour} : ${time.minute}';
+                        setState(() {});
+                      },
+                          currentTime: DateTime.parse("1969-07-20 20:30:00Z"),
+                          locale: LocaleType.en);
+                      setState(() {});
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 50.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Container(
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 18.0,
+                                      color: Colors.teal,
+                                    ),
+                                    Text(
+                                      " $_end_time",
+                                      style: TextStyle(
+                                          color: Colors.teal,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.0),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                          Text(
+                            "  Change",
+                            style: TextStyle(
+                                color: Colors.teal,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                    color: Colors.white,
+                  )
+                ],
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              showPreviousButton(),
+              showNextButton(),
+            ],
+          ),
         ],
       );
     } else {
@@ -547,8 +713,7 @@ class _HomeState extends State<HomeView> {
               )),
         ],
       );
-    }
-    if (_location_name != null) {
+    } else if (_location_name != null) {
       return Column(
         children: <Widget>[
           Padding(
@@ -562,15 +727,18 @@ class _HomeState extends State<HomeView> {
               textAlign: TextAlign.center,
             ),
           ),
-          Row(
+          Column(
             children: <Widget>[
-              Text(
-                _location_name,
-                style: new TextStyle(
-                  fontSize: 15.0,
-                  color: Colors.black,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0),
+                child: Text(
+                  _location_name,
+                  style: new TextStyle(
+                    fontSize: 15.0,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.left,
               ),
               Padding(
                   padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
@@ -600,11 +768,15 @@ class _HomeState extends State<HomeView> {
 
 //      var address = await Geocoder.local.findAddressesFromQuery(p.description);
 
-      print(lat);
-      print(lng);
-      _location_latitude = lat;
-      _location_longitude = lng;
-      _location_name = p.description;
+      setState(() {
+        _location_latitude = lat;
+        _location_longitude = lng;
+        _location_name = p.description;
+      });
+
+      print(_location_latitude);
+      print(_location_longitude);
+      print(_location_name);
     }
   }
 

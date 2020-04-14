@@ -29,7 +29,8 @@ dependencies:
   flutter_google_places: ^0.2.4
   geocoder: ^0.2.1
   google_maps_flutter: ^0.5.25+3
-
+  syncfusion_flutter_calendar: ^18.1.44-beta
+  flutter_datetime_picker: 1.2.5
 
 dev_dependencies:
   flutter_test:
