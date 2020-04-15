@@ -9,6 +9,7 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 //import 'package:i_am_rich/widgets/custom_picker_widget.dart';
+import 'package:i_am_rich/models/timeslot.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -40,6 +41,10 @@ class _HomeState extends State<HomeView> {
 
   String _start_time = "Not set";
   String _end_time = "Not set";
+  var _number_users = 2;
+  bool _showTimeslotForm = false;
+
+  List<Timeslot> _timeslots = [];
 
   Widget build(BuildContext context) {
     final user = Provider.of<User>(context);
@@ -126,180 +131,416 @@ class _HomeState extends State<HomeView> {
         ],
       );
     } else if (_formPage == 3) {
-      return Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    height: 20.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Slot Start Time',
-                      overflow: TextOverflow.clip,
-                      textAlign: TextAlign.left,
-                      style: new TextStyle(
-                        fontSize: 15.0,
-                        color: new Color(0xFF212121),
-                      ),
-                    ),
-                  ),
-                  RaisedButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0)),
-                    elevation: 4.0,
-                    onPressed: () {
-                      DatePicker.showTimePicker(context,
-                          theme: DatePickerTheme(
-                            containerHeight: 210.0,
-                          ),
-                          showTitleActions: true, onConfirm: (time) {
-                        print('confirm $time');
-                        _start_time = '${time.hour} : ${time.minute}';
-                        setState(() {});
-                      },
-                          currentTime: DateTime.parse("1969-07-20 20:30:00Z"),
-                          locale: LocaleType.en);
-                      setState(() {});
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 50.0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Container(
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.access_time,
-                                      size: 18.0,
-                                      color: Colors.teal,
-                                    ),
-                                    Text(
-                                      " $_start_time",
-                                      style: TextStyle(
-                                          color: Colors.teal,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.0),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                          Text(
-                            "  Change",
-                            style: TextStyle(
-                                color: Colors.teal,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                    color: Colors.white,
-                  ),
-                  SizedBox(
-                    height: 20.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Slot End Time',
-                      overflow: TextOverflow.clip,
-                      textAlign: TextAlign.left,
-                      style: new TextStyle(
-                        fontSize: 15.0,
-                        color: new Color(0xFF212121),
-                      ),
-                    ),
-                  ),
-                  RaisedButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0)),
-                    elevation: 4.0,
-                    onPressed: () {
-                      DatePicker.showTimePicker(context,
-                          theme: DatePickerTheme(
-                            containerHeight: 210.0,
-                          ),
-                          showTitleActions: true, onConfirm: (time) {
-                        print('confirm $time');
-                        _end_time = '${time.hour} : ${time.minute}';
-                        setState(() {});
-                      },
-                          currentTime: DateTime.parse("1969-07-20 20:30:00Z"),
-                          locale: LocaleType.en);
-                      setState(() {});
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 50.0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Container(
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.access_time,
-                                      size: 18.0,
-                                      color: Colors.teal,
-                                    ),
-                                    Text(
-                                      " $_end_time",
-                                      style: TextStyle(
-                                          color: Colors.teal,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.0),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                          Text(
-                            "  Change",
-                            style: TextStyle(
-                                color: Colors.teal,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                    color: Colors.white,
-                  )
-                ],
-              ),
+      if (_showTimeslotForm) {
+        return Column(
+          children: <Widget>[
+            showTimeslotForm(),
+          ],
+        );
+      } else {
+        return Column(
+          children: <Widget>[
+            showTimeslots(),
+            viewTimeslotFormButton(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                showPreviousButton(),
+                showNextButton(),
+              ],
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              showPreviousButton(),
-              showNextButton(),
-            ],
-          ),
-        ],
-      );
+          ],
+        );
+      }
     } else {
       return Container(
         height: 0,
         width: 0,
       );
     }
+  }
+
+  Widget showTimeslots() {
+    // show list of timeslots or return text saying no timeslots
+    if (_timeslots.length == 0) {
+      return Text(
+        'No Timeslots added',
+        overflow: TextOverflow.clip,
+        textAlign: TextAlign.left,
+        style: new TextStyle(
+          fontSize: 20.0,
+          color: new Color(0xFF212121),
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    } else {
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Heading
+          RaisedButton(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0)),
+            elevation: 4.0,
+            child: Container(
+              alignment: Alignment.center,
+              height: 50.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    ' Start',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0),
+                  ),
+                  Text(
+                    '           End',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0),
+                  ),
+                  Text(
+                    '     People',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0),
+                  ),
+                  Text(
+                    '',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0),
+                  ),
+                ],
+              ),
+            ),
+            color: Colors.white,
+          ),
+          SizedBox(
+            height: 20.0,
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: new List.generate(
+              _timeslots.length,
+              (i) => Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 10.0, 0),
+                        child: new RaisedButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5.0)),
+                          elevation: 4.0,
+                          onPressed: () {
+                            print('do nothing');
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: 50.0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Text(
+                                  _timeslots.elementAt(i).startTime,
+                                  style: TextStyle(
+                                      color: Colors.teal,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0),
+                                ),
+                                Text(
+                                  _timeslots.elementAt(i).endTime,
+                                  style: TextStyle(
+                                      color: Colors.teal,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0),
+                                ),
+                                Text(
+                                  _timeslots.elementAt(i).numberUsers.toString(),
+                                  style: TextStyle(
+                                      color: Colors.teal,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0),
+                                ),
+                              ],
+                            ),
+                          ),
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    ButtonTheme(
+                      minWidth: 10,
+                      child: RaisedButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0)),
+                        elevation: 4.0,
+                        onPressed: () {
+                          removeTimeSlot(i);
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: 50.0,
+                          child:
+                            Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                        ),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  removeTimeSlot(int i){
+    setState(() {
+      _timeslots.removeAt(i);
+    });
+  }
+
+  Widget viewTimeslotFormButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          shape: CircleBorder(),
+          elevation: 4.0,
+          color: Colors.teal,
+          child: new Icon(Icons.add, color: Colors.white),
+          onPressed: viewTimeslotForm,
+        ),
+      ),
+    );
+  }
+
+  viewTimeslotForm() {
+    setState(() {
+      _showTimeslotForm = true;
+    });
+  }
+
+  Widget showTimeslotForm() {
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Add Timeslot',
+                    overflow: TextOverflow.clip,
+                    textAlign: TextAlign.left,
+                    style: new TextStyle(
+                      fontSize: 20.0,
+                      color: new Color(0xFF212121),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                RaisedButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0)),
+                  elevation: 4.0,
+                  onPressed: () {
+                    DatePicker.showTimePicker(context,
+                        theme: DatePickerTheme(
+                          containerHeight: 210.0,
+                        ),
+                        showTitleActions: true, onConfirm: (time) {
+                      print('confirm $time');
+                      if (time.minute.toString() == "0") {
+                        _start_time = '${time.hour} : ${time.minute}0';
+                      } else {
+                        _start_time = '${time.hour} : ${time.minute}';
+                      }
+                      setState(() {});
+                    },
+                        currentTime: DateTime.parse("1969-07-20 20:00:00Z"),
+                        locale: LocaleType.en);
+                    setState(() {});
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 50.0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          "Start  ",
+                          style: TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0),
+                        ),
+                        Container(
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.access_time,
+                                size: 18.0,
+                                color: Colors.teal,
+                              ),
+                              Text(
+                                " $_start_time",
+                                style: TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          "  Change",
+                          style: TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  color: Colors.white,
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                RaisedButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0)),
+                  elevation: 4.0,
+                  onPressed: () {
+                    DatePicker.showTimePicker(context,
+                        theme: DatePickerTheme(
+                          containerHeight: 210.0,
+                        ),
+                        showTitleActions: true, onConfirm: (time) {
+                      print('confirm $time');
+                      if (time.minute.toString() == "0") {
+                        _end_time = '${time.hour} : ${time.minute}0';
+                      } else {
+                        _end_time = '${time.hour} : ${time.minute}';
+                      }
+                      setState(() {});
+                    },
+                        currentTime: DateTime.parse("1969-07-20 20:00:00Z"),
+                        locale: LocaleType.en);
+                    setState(() {});
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 50.0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          "End  ",
+                          style: TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0),
+                        ),
+                        Container(
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.access_time,
+                                size: 18.0,
+                                color: Colors.teal,
+                              ),
+                              Text(
+                                " $_end_time",
+                                style: TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          "  Change",
+                          style: TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  color: Colors.white,
+                )
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                'Number of watchmen',
+                overflow: TextOverflow.clip,
+                textAlign: TextAlign.left,
+                style: new TextStyle(
+                    color: Colors.teal,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0),
+              ),
+              new DropdownButton<int>(
+                items: <int>[1, 2, 3, 4].map((int value) {
+                  return new DropdownMenuItem<int>(
+                    value: value,
+                    child: new Text(value.toString()),
+                  );
+                }).toList(),
+                hint: Text(_number_users.toString()),
+                onChanged: (value) {
+                  setState(() {
+                    _number_users = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            showCancelTimeslotButton(),
+            showAddTimeslotButton(),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget monday() {
@@ -513,9 +754,9 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
-          elevation: 5.0,
-          shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          elevation: 4.0,
           color: Color.fromRGBO(254, 109, 64, 1),
           child: new Text('Join',
               style: new TextStyle(fontSize: 20.0, color: Colors.white)),
@@ -531,12 +772,15 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
-          elevation: 5.0,
-          shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 4.0,
           color: Color.fromRGBO(254, 109, 64, 1),
-          child: new Text('Create',
-              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          child: new Text(
+            'Create',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
           onPressed: showCreateForm,
         ),
       ),
@@ -549,16 +793,75 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
-          elevation: 5.0,
-          shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 4.0,
           color: Color.fromRGBO(254, 109, 64, 1),
-          child: new Text('Next',
-              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          child: new Text(
+            'Next',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
           onPressed: nextFormStep,
         ),
       ),
     );
+  }
+
+  Widget showAddTimeslotButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 4.0,
+          color: Colors.teal,
+          child: new Text(
+            'Add',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
+          onPressed: addTimeSlot,
+        ),
+      ),
+    );
+  }
+
+  Widget showCancelTimeslotButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          elevation: 4.0,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(
+                color: Colors.teal, width: 1, style: BorderStyle.solid),
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          color: Colors.white,
+          child: new Text(
+            'Cancel',
+            style: new TextStyle(
+              fontSize: 20.0,
+              color: Colors.teal,
+            ),
+          ),
+          onPressed: cancelCreatTimeslot,
+        ),
+      ),
+    );
+  }
+
+  Widget cancelCreatTimeslot() {
+    setState(() {
+      _showTimeslotForm = false;
+      _start_time = "Not set";
+      _end_time = "Not set";
+      _number_users = 1;
+    });
   }
 
   Widget showPreviousButton() {
@@ -567,16 +870,34 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
-          elevation: 5.0,
-          shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 4.0,
           color: Color.fromRGBO(254, 109, 64, 1),
-          child: new Text('Previous',
-              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          child: new Text(
+            'Previous',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
           onPressed: previousFormStep,
         ),
       ),
     );
+  }
+
+  addTimeSlot() {
+    print('adding timeslot');
+    Timeslot _timeslot = Timeslot(
+        startTime: _start_time, endTime: _end_time, numberUsers: _number_users);
+
+    _timeslots.add(_timeslot);
+
+    setState(() {
+      _showTimeslotForm = false;
+      _start_time = "Not set";
+      _end_time = "Not set";
+      _number_users = 1;
+    });
   }
 
   nextFormStep() {
@@ -597,18 +918,22 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
-          elevation: 5.0,
+          elevation: 4.0,
           shape: RoundedRectangleBorder(
             side: BorderSide(
                 color: Color.fromRGBO(254, 109, 64, 1),
                 width: 1,
                 style: BorderStyle.solid),
-            borderRadius: BorderRadius.circular(30.0),
+            borderRadius: BorderRadius.circular(5.0),
           ),
           color: Colors.white,
-          child: new Text('Cancel',
-              style: new TextStyle(
-                  fontSize: 20.0, color: Color.fromRGBO(254, 109, 64, 1))),
+          child: new Text(
+            'Cancel',
+            style: new TextStyle(
+              fontSize: 20.0,
+              color: Color.fromRGBO(254, 109, 64, 1),
+            ),
+          ),
           onPressed: cancelCreateForm,
         ),
       ),
@@ -623,10 +948,13 @@ class _HomeState extends State<HomeView> {
         child: new RaisedButton(
           elevation: 5.0,
           shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0)),
+            borderRadius: new BorderRadius.circular(30.0),
+          ),
           color: Color.fromRGBO(254, 109, 64, 1),
-          child: new Text('Create',
-              style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+          child: new Text(
+            'Create',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
           onPressed: showCreateForm,
         ),
       ),
@@ -646,6 +974,11 @@ class _HomeState extends State<HomeView> {
   cancelCreateForm() {
     setState(() {
       _showCreateForm = false;
+      _showTimeslotForm = false;
+      _start_time = "Not set";
+      _end_time = "Not set";
+      _number_users = 1;
+      _timeslots = [];
     });
   }
 
