@@ -44,6 +44,9 @@ class _HomeState extends State<HomeView> {
   var _number_users = 2;
   bool _showTimeslotForm = false;
 
+  bool _showFormError = false;
+  List <String> _formErrors = [];
+
   List<Timeslot> _timeslots = [];
 
   Widget build(BuildContext context) {
@@ -92,6 +95,10 @@ class _HomeState extends State<HomeView> {
         children: <Widget>[
           showNameInput(),
           showLocationInput(),
+          SizedBox(
+            height: 20.0,
+          ),
+          showFormErrors(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -111,6 +118,7 @@ class _HomeState extends State<HomeView> {
             textAlign: TextAlign.center,
             style: new TextStyle(
               fontSize: 20.0,
+              fontWeight: FontWeight.bold,
               color: new Color(0xFF212121),
             ),
           ),
@@ -266,7 +274,10 @@ class _HomeState extends State<HomeView> {
                                       fontSize: 18.0),
                                 ),
                                 Text(
-                                  _timeslots.elementAt(i).numberUsers.toString(),
+                                  _timeslots
+                                      .elementAt(i)
+                                      .numberUsers
+                                      .toString(),
                                   style: TextStyle(
                                       color: Colors.teal,
                                       fontWeight: FontWeight.bold,
@@ -291,11 +302,10 @@ class _HomeState extends State<HomeView> {
                         child: Container(
                           alignment: Alignment.center,
                           height: 50.0,
-                          child:
-                            Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                            ),
+                          child: Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          ),
                         ),
                         color: Colors.white,
                       ),
@@ -310,10 +320,39 @@ class _HomeState extends State<HomeView> {
     }
   }
 
-  removeTimeSlot(int i){
+  removeTimeSlot(int i) {
     setState(() {
       _timeslots.removeAt(i);
     });
+  }
+
+  Widget showFormErrors(){
+    if (_showFormError){
+      return Column(
+        children: new List.generate(
+          _formErrors.length,
+          (i) =>
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              child: Text(
+                _formErrors.elementAt(i),
+                style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0),
+              ),
+            ),
+          ),
+        )
+      );
+    }
+    else{
+      return Container(
+        height: 0,
+        width: 0,
+      );
+    }
   }
 
   Widget viewTimeslotFormButton() {
@@ -558,9 +597,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -581,9 +618,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -604,9 +639,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -627,9 +660,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -650,9 +681,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -673,9 +702,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -696,9 +723,7 @@ class _HomeState extends State<HomeView> {
           overflow: TextOverflow.clip,
           textAlign: TextAlign.left,
           style: new TextStyle(
-            fontSize: 15.0,
-            color: new Color(0xFF212121),
-          ),
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
         ),
       ],
     );
@@ -901,9 +926,42 @@ class _HomeState extends State<HomeView> {
   }
 
   nextFormStep() {
-    setState(() {
-      _formPage += 1;
-    });
+    if (validateFormStep(_formPage)){
+      setState(() {
+        _formPage += 1;
+      });
+    }
+  }
+
+  bool validateFormStep(int step) {
+    _formErrors = [];
+    switch (step) {
+      case 1:
+        {
+          if (_name == null || _name == '') {
+            // name error
+            setState(() {
+              _formErrors.add('Missing name field');
+              _showFormError = true;
+            });
+          }
+          if (_location_name == null || _location_name == '') {
+            // location error
+            setState(() {
+              _formErrors.add('Missing location');
+              _showFormError = true;
+            });
+          }
+          if ((_location_name != null && _location_name != '') && (_name != null && _name != '')) {
+            setState(() {
+              _showFormError = false;
+              _formErrors = [];
+            });
+          }
+        }
+
+        return (_formErrors.length == 0);
+    }
   }
 
   previousFormStep() {
@@ -979,6 +1037,12 @@ class _HomeState extends State<HomeView> {
       _end_time = "Not set";
       _number_users = 1;
       _timeslots = [];
+      _formErrors = [];
+      _showFormError = false;
+      _name = '';
+      _location_name = '';
+      _location_longitude = null;
+      _location_latitude = null;
     });
   }
 
@@ -1011,12 +1075,34 @@ class _HomeState extends State<HomeView> {
                 color: Color.fromRGBO(254, 109, 64, 1),
               ),
             ),
+            onChanged: (value) => formNameError(value),
             validator: (value) => value.isEmpty ? 'Name can\'t be empty' : null,
             onSaved: (value) => _name = value.trim(),
           ),
         ),
       ],
     );
+  }
+
+  formNameError(String name){
+    setState(() {
+      _name = name;
+    });
+    if (name != null && name != ''){
+      setState(() {
+        _formErrors.remove('Missing name field');
+        if (_formErrors.length == 0){
+          _showFormError = false;
+        }
+      });
+    }
+    else{
+      setState(() {
+        _formErrors.add('Missing name field');
+        _showFormError = true;
+      });
+    }
+
   }
 
   Widget showLocationInput() {
@@ -1067,8 +1153,8 @@ class _HomeState extends State<HomeView> {
                 child: Text(
                   _location_name,
                   style: new TextStyle(
-                    fontSize: 15.0,
-                    color: Colors.black,
+                    fontSize: 20.0,
+                    color: Colors.teal,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1102,6 +1188,10 @@ class _HomeState extends State<HomeView> {
 //      var address = await Geocoder.local.findAddressesFromQuery(p.description);
 
       setState(() {
+        _formErrors.remove('Missing location');
+        if (_formErrors.length == 0){
+          _showFormError = false;
+        }
         _location_latitude = lat;
         _location_longitude = lng;
         _location_name = p.description;
