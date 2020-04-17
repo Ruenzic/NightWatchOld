@@ -129,6 +129,10 @@ class _HomeState extends State<HomeView> {
           friday(),
           saturday(),
           sunday(),
+          SizedBox(
+            height: 20.0,
+          ),
+          showFormErrors(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -150,6 +154,10 @@ class _HomeState extends State<HomeView> {
           children: <Widget>[
             showTimeslots(),
             viewTimeslotFormButton(),
+            SizedBox(
+              height: 20.0,
+            ),
+            showFormErrors(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -561,6 +569,7 @@ class _HomeState extends State<HomeView> {
                     child: new Text(value.toString()),
                   );
                 }).toList(),
+                value: _number_users,
                 hint: Text(_number_users.toString()),
                 onChanged: (value) {
                   setState(() {
@@ -929,6 +938,7 @@ class _HomeState extends State<HomeView> {
     if (validateFormStep(_formPage)){
       setState(() {
         _formPage += 1;
+//        validateFormStep(_formPage);
       });
     }
   }
@@ -958,15 +968,48 @@ class _HomeState extends State<HomeView> {
               _formErrors = [];
             });
           }
+          return (_formErrors.length == 0);
         }
+      case 2:
+        {
+          if (!_monday && !_tuesday && !_wednesday && !_thursday && !_friday && !_saturday && !_sunday){
+            setState(() {
+              _showFormError = true;
+              _formErrors.add('No days selected');
+            });
+          }
+          else if (_monday && _tuesday && _wednesday && _thursday && _friday && _saturday && _sunday){
+            setState(() {
+              _showFormError = false;
+              _formErrors = [];
+            });
+          }
+          return (_formErrors.length == 0);
+        }
+      case 3:
+        {
+          if (_timeslots.length == 0){
+            setState(() {
+              _showFormError = true;
+              _formErrors.add('No timeslots added');
+            });
+          }
+          else{
+            setState(() {
+              _showFormError = false;
+              _formErrors = [];
+            });
+          }
 
-        return (_formErrors.length == 0);
+          return (_formErrors.length == 0);
+        }
     }
   }
 
   previousFormStep() {
     setState(() {
       _formPage -= 1;
+      validateFormStep(_formPage);
     });
   }
 
@@ -1043,6 +1086,14 @@ class _HomeState extends State<HomeView> {
       _location_name = '';
       _location_longitude = null;
       _location_latitude = null;
+      _monday = true;
+      _tuesday = true;
+      _wednesday = true;
+      _thursday = true;
+      _friday = true;
+      _saturday = true;
+      _sunday = true;
+
     });
   }
 
@@ -1062,6 +1113,7 @@ class _HomeState extends State<HomeView> {
           child: new TextFormField(
             maxLines: 1,
             autofocus: false,
+            initialValue: _name,
             decoration: new InputDecoration(
 //              focusedBorder: OutlineInputBorder(
 //                borderSide: BorderSide(color: Colors.black, width: 2.0),
