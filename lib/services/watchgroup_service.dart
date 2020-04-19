@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:i_am_rich/models/timeslot.dart';
+import 'package:i_am_rich/services/user_service.dart';
 
 class WatchGroupService{
   WatchGroupService({ this.userId });
@@ -8,13 +10,20 @@ class WatchGroupService{
 
   final String userId;
 
-  Future updateWatchGroup(String name, List<String> users, bool isPrivate) async {
-    return await watchGroupCollection.add({
+  Future createWatchGroup(String name, List<Timeslot> timeslots, String location, double latitude, double longitude, var daysOfWeek) async {
+    DocumentReference docRef = await watchGroupCollection.add({
       'name': name,
       'admin': userId,
-      'users': users,
-      'isPrivate': isPrivate
+      'isPrivate': true,
+      'timeslots': timeslots.map((e) => e.toJson()).toList(),
+      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
+      'daysOfWeek': daysOfWeek
     });
+//    docRef.updateData({'timeslots': timeslots});
+    UserService(userId: userId).updateUserWatchGroup(docRef.documentID);
+    return docRef.documentID;
   }
 
 

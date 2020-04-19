@@ -10,14 +10,14 @@ class UserService{
   final String userId;
 
   Future updateUserName(String name) async {
-    return await userCollection.document(userId).setData({
+    return await userCollection.document(userId).updateData({
       'name': name
     });
   }
 
   Future updateUserWatchGroup(String id) async {
-    return await userCollection.document(userId).setData({
-      'watchGroup': id
+    return await userCollection.document(userId).updateData({
+      'watchGroupId': id
     });
   }
 

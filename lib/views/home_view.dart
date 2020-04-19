@@ -10,6 +10,7 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 //import 'package:i_am_rich/widgets/custom_picker_widget.dart';
 import 'package:i_am_rich/models/timeslot.dart';
+import 'package:i_am_rich/services/watchgroup_service.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -31,14 +32,6 @@ class _HomeState extends State<HomeView> {
   double _location_latitude;
   double _location_longitude;
 
-  bool _monday = true;
-  bool _tuesday = true;
-  bool _wednesday = true;
-  bool _thursday = true;
-  bool _friday = true;
-  bool _saturday = true;
-  bool _sunday = true;
-
   String _start_time = "Not set";
   String _end_time = "Not set";
   var _number_users = 2;
@@ -47,6 +40,15 @@ class _HomeState extends State<HomeView> {
   bool _showFormError = false;
   List <String> _formErrors = [];
 
+  var _daysOfWeek = {
+    'monday': true,
+    'tuesday': true,
+    'wednesday': true,
+    'thursday': true,
+    'friday': true,
+    'saturday': true,
+    'sunday': true,
+  };
   List<Timeslot> _timeslots = [];
 
   Widget build(BuildContext context) {
@@ -162,7 +164,7 @@ class _HomeState extends State<HomeView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 showPreviousButton(),
-                showNextButton(),
+                showCreateWatchGroupButton(),
               ],
             ),
           ],
@@ -174,6 +176,36 @@ class _HomeState extends State<HomeView> {
         width: 0,
       );
     }
+  }
+
+  Widget showCreateWatchGroupButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+      child: SizedBox(
+        height: 40.0,
+        child: new RaisedButton(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 4.0,
+          color: Color.fromRGBO(254, 109, 64, 1),
+          child: new Text(
+            'Create',
+            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
+          onPressed: createWatchGroup,
+        ),
+      ),
+    );
+  }
+
+  createWatchGroup(){
+    // create watchgroup, get back an id then update the user object with the watchgroup id
+    // this should then trigger the listener to take us out the form to the home page
+    final firebaseUser = Provider.of<FirebaseUser>(context, listen: false);
+    print('would create watch group');
+    WatchGroupService watchGroupService = WatchGroupService(userId: firebaseUser.uid);
+    watchGroupService.createWatchGroup(_name, _timeslots, _location_name, _location_latitude, _location_longitude, _daysOfWeek);
   }
 
   Widget showTimeslots() {
@@ -381,6 +413,9 @@ class _HomeState extends State<HomeView> {
 
   viewTimeslotForm() {
     setState(() {
+      // Empty form errors array so we remove the 'No timeslots added' error after user goes to add form
+      _formErrors = [];
+      _showFormError = false;
       _showTimeslotForm = true;
     });
   }
@@ -422,12 +457,25 @@ class _HomeState extends State<HomeView> {
                         ),
                         showTitleActions: true, onConfirm: (time) {
                       print('confirm $time');
-                      if (time.minute.toString() == "0") {
+                      if (time.minute.toString() == "0" && time.hour.toString() == '0') {
+                        _start_time = '${time.hour}0 : ${time.minute}0';
+                      }
+                      else if (time.minute.toString() == "0") {
                         _start_time = '${time.hour} : ${time.minute}0';
-                      } else {
+                      }
+                      else if (time.hour.toString() == "0") {
+                        _start_time = '${time.hour}0 : ${time.minute}';
+                      }
+                      else {
                         _start_time = '${time.hour} : ${time.minute}';
                       }
-                      setState(() {});
+//                      validateTimeSlot(_start_time, _end_time);
+                      setState(() {
+                        _formErrors.remove('Start time not set');
+                        if (_formErrors.length == 0){
+                          _showFormError = false;
+                        }
+                      });
                     },
                         currentTime: DateTime.parse("1969-07-20 20:00:00Z"),
                         locale: LocaleType.en);
@@ -490,14 +538,27 @@ class _HomeState extends State<HomeView> {
                         ),
                         showTitleActions: true, onConfirm: (time) {
                       print('confirm $time');
-                      if (time.minute.toString() == "0") {
+                      if (time.minute.toString() == "0" && time.hour.toString() == '0') {
+                        _end_time = '${time.hour}0 : ${time.minute}0';
+                      }
+                      else if (time.minute.toString() == "0") {
                         _end_time = '${time.hour} : ${time.minute}0';
-                      } else {
+                      }
+                      else if (time.hour.toString() == "0") {
+                        _end_time = '${time.hour}0 : ${time.minute}';
+                      }
+                      else {
                         _end_time = '${time.hour} : ${time.minute}';
                       }
-                      setState(() {});
+//                      validateTimeSlot(_start_time, _end_time);
+                      setState(() {
+                        _formErrors.remove('End time not set');
+                        if (_formErrors.length == 0){
+                          _showFormError = false;
+                        }
+                      });
                     },
-                        currentTime: DateTime.parse("1969-07-20 20:00:00Z"),
+                        currentTime: getEndTime(),
                         locale: LocaleType.en);
                     setState(() {});
                   },
@@ -580,6 +641,10 @@ class _HomeState extends State<HomeView> {
             ],
           ),
         ),
+        SizedBox(
+          height: 20.0,
+        ),
+        showFormErrors(),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -591,14 +656,27 @@ class _HomeState extends State<HomeView> {
     );
   }
 
+  DateTime getEndTime(){
+    var hour = _start_time.split(':')[0];
+    print(hour);
+    if (hour == '23'){
+      hour = '00';
+    }
+    else{
+      hour = (int.parse(hour) + 1).toString();
+      print(hour);
+    }
+    return DateTime.parse("1969-07-20 ${hour}:00:00Z");
+  }
+
   Widget monday() {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _monday,
+            value: _daysOfWeek['monday'],
             onChanged: (value) {
               setState(() {
-                _monday = value;
+                _daysOfWeek['monday'] = value;
               });
             }),
         Text(
@@ -616,10 +694,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _tuesday,
+            value: _daysOfWeek['tuesday'],
             onChanged: (value) {
               setState(() {
-                _tuesday = value;
+                _daysOfWeek['tuesday'] = value;
               });
             }),
         Text(
@@ -637,10 +715,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _wednesday,
+            value: _daysOfWeek['wednesday'],
             onChanged: (value) {
               setState(() {
-                _wednesday = value;
+                _daysOfWeek['wednesday'] = value;
               });
             }),
         Text(
@@ -658,10 +736,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _thursday,
+            value: _daysOfWeek['thursday'],
             onChanged: (value) {
               setState(() {
-                _thursday = value;
+                _daysOfWeek['thursday'] = value;
               });
             }),
         Text(
@@ -679,10 +757,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _friday,
+            value: _daysOfWeek['friday'],
             onChanged: (value) {
               setState(() {
-                _friday = value;
+                _daysOfWeek['friday'] = value;
               });
             }),
         Text(
@@ -700,10 +778,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _saturday,
+            value: _daysOfWeek['saturday'],
             onChanged: (value) {
               setState(() {
-                _saturday = value;
+                _daysOfWeek['satuday'] = value;
               });
             }),
         Text(
@@ -721,10 +799,10 @@ class _HomeState extends State<HomeView> {
     return Row(
       children: <Widget>[
         Checkbox(
-            value: _sunday,
+            value: _daysOfWeek['sunday'],
             onChanged: (value) {
               setState(() {
-                _sunday = value;
+                _daysOfWeek['sunday'] = value;
               });
             }),
         Text(
@@ -891,10 +969,12 @@ class _HomeState extends State<HomeView> {
 
   Widget cancelCreatTimeslot() {
     setState(() {
+      _showFormError = false;
+      _formErrors = [];
       _showTimeslotForm = false;
       _start_time = "Not set";
       _end_time = "Not set";
-      _number_users = 1;
+      _number_users = 2;
     });
   }
 
@@ -904,14 +984,19 @@ class _HomeState extends State<HomeView> {
       child: SizedBox(
         height: 40.0,
         child: new RaisedButton(
+          elevation: 4.0,
           shape: RoundedRectangleBorder(
+            side: BorderSide(
+                color: Color.fromRGBO(254, 109, 64, 1), width: 1, style: BorderStyle.solid),
             borderRadius: BorderRadius.circular(5.0),
           ),
-          elevation: 4.0,
-          color: Color.fromRGBO(254, 109, 64, 1),
+          color: Colors.white,
           child: new Text(
             'Previous',
-            style: new TextStyle(fontSize: 20.0, color: Colors.white),
+            style: new TextStyle(
+              fontSize: 20.0,
+              color: Color.fromRGBO(254, 109, 64, 1),
+            ),
           ),
           onPressed: previousFormStep,
         ),
@@ -920,18 +1005,55 @@ class _HomeState extends State<HomeView> {
   }
 
   addTimeSlot() {
-    print('adding timeslot');
-    Timeslot _timeslot = Timeslot(
-        startTime: _start_time, endTime: _end_time, numberUsers: _number_users);
+    if (validateTimeSlot(_start_time, _end_time)) {
+      print('adding timeslot');
+      Timeslot _timeslot = Timeslot(
+          startTime: _start_time,
+          endTime: _end_time,
+          numberUsers: _number_users);
 
-    _timeslots.add(_timeslot);
+      _timeslots.add(_timeslot);
 
-    setState(() {
-      _showTimeslotForm = false;
-      _start_time = "Not set";
-      _end_time = "Not set";
-      _number_users = 1;
-    });
+      setState(() {
+        _showTimeslotForm = false;
+        _start_time = "Not set";
+        _end_time = "Not set";
+        _number_users = 2;
+      });
+    }
+  }
+
+  validateTimeSlot(String startTime, String endTime){
+    if (startTime != 'Not set' && endTime != 'Not set'){
+      if (startTime != endTime){
+        setState(() {
+          _formErrors = [];
+          _showFormError = false;
+        });
+        return true;
+      }
+      else{
+        setState(() {
+          _formErrors = [];
+          _showFormError = true;
+          _formErrors.add('Start time is the same as the end time');
+          return false;
+        });
+      }
+    }
+    else{
+      setState(() {
+        _formErrors = [];
+        _showFormError = true;
+        if (startTime == 'Not set'){
+          _formErrors.add('Start time not set');
+        }
+        if (endTime == 'Not set'){
+          _formErrors.add('End time not set');
+        }
+        return false;
+      });
+    }
   }
 
   nextFormStep() {
@@ -972,13 +1094,14 @@ class _HomeState extends State<HomeView> {
         }
       case 2:
         {
-          if (!_monday && !_tuesday && !_wednesday && !_thursday && !_friday && !_saturday && !_sunday){
+          if (!_daysOfWeek['monday'] && !_daysOfWeek['tuesday'] && !_daysOfWeek['wednesday'] && !_daysOfWeek['thursday'] && !_daysOfWeek['friday'] && !_daysOfWeek['saturday'] && !_daysOfWeek['sunday']){
             setState(() {
               _showFormError = true;
               _formErrors.add('No days selected');
             });
           }
-          else if (_monday && _tuesday && _wednesday && _thursday && _friday && _saturday && _sunday){
+          else if (_daysOfWeek['monday'] && _daysOfWeek['tuesday'] && _daysOfWeek['wednesday'] && _daysOfWeek['thursday'] && _daysOfWeek['friday'] && _daysOfWeek['saturday'] && _daysOfWeek['sunday']){
+
             setState(() {
               _showFormError = false;
               _formErrors = [];
@@ -1078,7 +1201,7 @@ class _HomeState extends State<HomeView> {
       _showTimeslotForm = false;
       _start_time = "Not set";
       _end_time = "Not set";
-      _number_users = 1;
+      _number_users = 2;
       _timeslots = [];
       _formErrors = [];
       _showFormError = false;
@@ -1086,13 +1209,15 @@ class _HomeState extends State<HomeView> {
       _location_name = '';
       _location_longitude = null;
       _location_latitude = null;
-      _monday = true;
-      _tuesday = true;
-      _wednesday = true;
-      _thursday = true;
-      _friday = true;
-      _saturday = true;
-      _sunday = true;
+      _daysOfWeek = {
+        'monday': true,
+        'tuesday': true,
+        'wednesday': true,
+        'thursday': true,
+        'friday': true,
+        'saturday': true,
+        'sunday': true,
+      };
 
     });
   }
