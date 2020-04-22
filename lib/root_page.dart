@@ -25,6 +25,7 @@ class RootPage extends StatefulWidget {
 class _RootPageState extends State<RootPage> {
   AuthStatus authStatus = AuthStatus.NOT_DETERMINED;
   String _userId;
+  String _watchGroupId;
   FirebaseUser _user;
 
   @override
@@ -34,6 +35,7 @@ class _RootPageState extends State<RootPage> {
       setState(() {
         if (user != null) {
           _userId = user?.uid;
+          _watchGroupId = user?.displayName;
           _user = user;
         }
         authStatus =
@@ -46,6 +48,7 @@ class _RootPageState extends State<RootPage> {
     widget.auth.getCurrentUser().then((user) {
       setState(() {
         _userId = user.uid;
+        _watchGroupId = user.displayName;
         _user = user;
       });
     });
@@ -58,6 +61,7 @@ class _RootPageState extends State<RootPage> {
     setState(() {
       authStatus = AuthStatus.NOT_LOGGED_IN;
       _userId = "";
+      _watchGroupId = "";
     });
   }
 
@@ -88,10 +92,12 @@ class _RootPageState extends State<RootPage> {
       case AuthStatus.LOGGED_IN:
         if (_userId.length > 0 && _userId != null) {
           print(_userId);
+          print(_watchGroupId);
           return new TabsView(
             userId: _userId,
             auth: widget.auth,
             logoutCallback: logoutCallback,
+            watchGroupId: _watchGroupId,
 //            user: getUser(_userId)
           );
         } else

@@ -11,14 +11,18 @@ import 'package:i_am_rich/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:i_am_rich/services/user_service.dart';
+import 'package:i_am_rich/models/watchgroup.dart';
+import 'package:i_am_rich/services/watchgroup_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TabsView extends StatefulWidget {
-  TabsView({Key key, this.auth, this.userId, this.logoutCallback})
+  TabsView({Key key, this.auth, this.userId, this.logoutCallback, this.watchGroupId})
     : super(key: key);
 
   final BaseAuth auth;
   final VoidCallback logoutCallback;
   final String userId;
+  final String watchGroupId;
 
   @override
   State<StatefulWidget> createState() => new _TabsState();
@@ -33,8 +37,16 @@ class _TabsState extends State<TabsView> {
 
   Widget build(BuildContext context) {
 
-    return StreamProvider<User>.value(
-      value: UserService(userId: widget.userId).user,
+    final firebaseUser = Provider.of<FirebaseUser>(context);
+    print(firebaseUser);
+    return MultiProvider(
+        providers: [
+          StreamProvider<User>.value(value: UserService(userId: widget.userId).user),
+          StreamProvider<WatchGroup>.value(value: WatchGroupService(watchGroupId: firebaseUser.displayName).watchGroup),
+        ],
+
+//    return StreamProvider<User>.value(
+//      value: UserService(userId: widget.userId).user,
       child: Scaffold(
         appBar: AppBar(
           title: Text('NightWatch'),

@@ -11,7 +11,9 @@ class WatchGroup {
   final double latitude;
   final double longitude;
   List<Timeslot> timeslots;
-  List<String> daysOfWeek;
+  Map<String, bool> daysOfWeek;
 
   WatchGroup({ this.name, this.users, this.adminId, this.isPrivate, this.location, this.timeslots, this.daysOfWeek, this.latitude, this.longitude });
+
+
 }

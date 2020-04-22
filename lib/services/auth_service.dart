@@ -20,9 +20,9 @@ abstract class BaseAuth {
 class AuthService implements BaseAuth {
 
   // Create User object based on FirebaseUser
-  User _userFromFirebaseUser(FirebaseUser user){
-    return user != null ? User(userName: user.displayName, watchGroupId: ''): null;
-  }
+//  User _userFromFirebaseUser(FirebaseUser user){
+//    return user != null ? User(userName: user.displayName, watchGroupId: ''): null;
+//  }
 
   // get user stream
   Stream<FirebaseUser> get user {
@@ -46,7 +46,7 @@ class AuthService implements BaseAuth {
     // Create user object on firestore
     await UserService(userId: user.uid).updateUserName(name);
     // Update displayName with user name on firebath auth user object
-    await user.updateProfile(UserUpdateInfo()..displayName = name);
+//    await user.updateProfile(UserUpdateInfo()..displayName = name);
     return user;
   }
 
@@ -69,4 +69,20 @@ class AuthService implements BaseAuth {
     return user.isEmailVerified;
   }
 
+  Future<void> updateWatchGroupId(String watchGroupId) async {
+    FirebaseUser user = await _firebaseAuth.currentUser();
+    print('updating firebase user display name with watchgroup id');
+    await user.updateProfile(UserUpdateInfo()..displayName = watchGroupId);
+  }
+
 }
+
+
+
+
+
+
+
+
+
+

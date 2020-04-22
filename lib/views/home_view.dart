@@ -3,7 +3,7 @@ import 'package:i_am_rich/models/user.dart';
 import 'package:i_am_rich/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-//import 'package:geocoder/geocoder.dart';
+import 'package:geocoder/geocoder.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 //import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -11,6 +11,7 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 //import 'package:i_am_rich/widgets/custom_picker_widget.dart';
 import 'package:i_am_rich/models/timeslot.dart';
 import 'package:i_am_rich/services/watchgroup_service.dart';
+import 'package:i_am_rich/models/watchgroup.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -52,8 +53,9 @@ class _HomeState extends State<HomeView> {
   List<Timeslot> _timeslots = [];
 
   Widget build(BuildContext context) {
-    final user = Provider.of<User>(context);
+    User user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context);
+    WatchGroup watchGroup = Provider.of<WatchGroup>(context);
 
     if (user == null) {
       return Center(
@@ -62,9 +64,16 @@ class _HomeState extends State<HomeView> {
     } else {
       if (user.watchGroupId != null && user.watchGroupId.length > 0) {
         // Show content if the user has chosen a watch group
-        return new Container(
-          height: 0.0,
-          width: 0.0,
+        return Column(
+          children: <Widget>[
+            new Text(
+              watchGroup.name
+            ),
+            new Container(
+              height: 0.0,
+              width: 0.0,
+            ),
+          ],
         );
       } else {
         // Show content if the user hasn't chosen a watch group
@@ -229,7 +238,7 @@ class _HomeState extends State<HomeView> {
           // Heading
           RaisedButton(
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5.0)),
+                borderRadius: BorderRadius.circular(0.0)),
             elevation: 4.0,
             child: Container(
               alignment: Alignment.center,
@@ -457,18 +466,38 @@ class _HomeState extends State<HomeView> {
                         ),
                         showTitleActions: true, onConfirm: (time) {
                       print('confirm $time');
-                      if (time.minute.toString() == "0" && time.hour.toString() == '0') {
-                        _start_time = '${time.hour}0 : ${time.minute}0';
+                      var minute = time.minute.toString();
+                      var hour = time.hour.toString();
+
+                      if (minute == "0" && hour == '0') {
+//                        _end_time = '${time.hour}0 : ${time.minute}0';
+                        hour = hour + '0';
+                        minute = minute + '0';
                       }
-                      else if (time.minute.toString() == "0") {
-                        _start_time = '${time.hour} : ${time.minute}0';
+                      else if (minute == "0") {
+//                        _end_time = '${time.hour} : ${time.minute}0';
+                        minute = minute + '0';
                       }
-                      else if (time.hour.toString() == "0") {
-                        _start_time = '${time.hour}0 : ${time.minute}';
+                      else if (hour == "0") {
+//                        _end_time = '${time.hour}0 : ${time.minute}';
+                        hour = hour + '0';
                       }
-                      else {
-                        _start_time = '${time.hour} : ${time.minute}';
+
+                      if (hour.length == 1 && minute.length == 1){
+//                        _end_time = '0${time.hour} : 0${time.minute}';
+                        hour = '0' + hour;
+                        minute = '0' + minute;
                       }
+                      else if (hour.length == 1){
+//                        _end_time = '0${time.hour} : ${time.minute}';
+                        hour = '0' + hour;
+                      }
+                      else if (minute.length == 1){
+//                        _end_time = '${time.hour} : 0${time.minute}';
+                        minute = '0' + minute;
+                      }
+
+                      _start_time = hour + ' : ' + minute;
 //                      validateTimeSlot(_start_time, _end_time);
                       setState(() {
                         _formErrors.remove('Start time not set');
@@ -538,18 +567,40 @@ class _HomeState extends State<HomeView> {
                         ),
                         showTitleActions: true, onConfirm: (time) {
                       print('confirm $time');
-                      if (time.minute.toString() == "0" && time.hour.toString() == '0') {
-                        _end_time = '${time.hour}0 : ${time.minute}0';
+
+                      var minute = time.minute.toString();
+                      var hour = time.hour.toString();
+
+                      if (minute == "0" && hour == '0') {
+//                        _end_time = '${time.hour}0 : ${time.minute}0';
+                        hour = hour + '0';
+                        minute = minute + '0';
                       }
-                      else if (time.minute.toString() == "0") {
-                        _end_time = '${time.hour} : ${time.minute}0';
+                      else if (minute == "0") {
+//                        _end_time = '${time.hour} : ${time.minute}0';
+                        minute = minute + '0';
                       }
-                      else if (time.hour.toString() == "0") {
-                        _end_time = '${time.hour}0 : ${time.minute}';
+                      else if (hour == "0") {
+//                        _end_time = '${time.hour}0 : ${time.minute}';
+                        hour = hour + '0';
                       }
-                      else {
-                        _end_time = '${time.hour} : ${time.minute}';
+
+                      if (hour.length == 1 && minute.length == 1){
+//                        _end_time = '0${time.hour} : 0${time.minute}';
+                        hour = '0' + hour;
+                        minute = '0' + minute;
                       }
+                      else if (hour.length == 1){
+//                        _end_time = '0${time.hour} : ${time.minute}';
+                        hour = '0' + hour;
+                      }
+                      else if (minute.length == 1){
+//                        _end_time = '${time.hour} : 0${time.minute}';
+                        minute = '0' + minute;
+                      }
+
+                      _end_time = hour + ' : ' + minute;
+
 //                      validateTimeSlot(_start_time, _end_time);
                       setState(() {
                         _formErrors.remove('End time not set');
@@ -666,6 +717,11 @@ class _HomeState extends State<HomeView> {
       hour = (int.parse(hour) + 1).toString();
       print(hour);
     }
+
+    if (hour.length == 1){
+      hour = '0' + hour;
+    }
+
     return DateTime.parse("1969-07-20 ${hour}:00:00Z");
   }
 
@@ -1355,6 +1411,7 @@ class _HomeState extends State<HomeView> {
 
   Future<Null> displayPrediction(Prediction p) async {
     if (p != null) {
+
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
 
@@ -1363,6 +1420,7 @@ class _HomeState extends State<HomeView> {
       double lng = detail.result.geometry.location.lng;
 
 //      var address = await Geocoder.local.findAddressesFromQuery(p.description);
+      final query = p.description; var addresses = await Geocoder.local.findAddressesFromQuery(query); var first = addresses.first; print("${first.featureName} : ${first.coordinates}");
 
       setState(() {
         _formErrors.remove('Missing location');

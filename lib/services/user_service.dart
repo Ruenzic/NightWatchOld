@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:i_am_rich/models/user.dart';
+import 'package:i_am_rich/services/auth_service.dart';
+
 
 class UserService{
   UserService({ this.userId });
@@ -16,6 +18,7 @@ class UserService{
   }
 
   Future updateUserWatchGroup(String id) async {
+    await AuthService().updateWatchGroupId(id);
     return await userCollection.document(userId).updateData({
       'watchGroupId': id
     });
@@ -51,5 +54,7 @@ class UserService{
       );
     });
   }
+
+
 
 }
