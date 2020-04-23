@@ -40,10 +40,21 @@ class WatchGroupService{
     return watchGroup != null ? WatchGroup(name: watchGroup['name'], users: watchGroup['users'], adminId: watchGroup['admin'], isPrivate: watchGroup['isPrivate'], location: watchGroup['location'], timeslots: List<Timeslot>.from((watchGroup['timeslots'].map((e) => Timeslot(startTime: e['startTime'], endTime: e['endTime'], numberUsers: e['numberUsers']))).toList()), daysOfWeek: new Map<String, bool>.from(watchGroup['daysOfWeek']), latitude: watchGroup['latitude'], longitude: watchGroup['longitude']): null;
   }
 
-  // get user stream
+  // get watchgroup stream
   Stream<WatchGroup> get watchGroup {
     return watchGroupCollection.document(watchGroupId).snapshots().map((DocumentSnapshot watchGroup) => _watchGroupFromFirestore(watchGroup));
   }
+
+  Timeslot _timeSlotFromFirestore(DocumentSnapshot timeSlot){
+    return timeSlot != null ? Timeslot(startTime: timeSlot['startTime'], endTime: timeSlot['endTime'], numberUsers: timeSlot['numberUsers'], id: timeSlot.documentID): null;
+  }
+
+  // get timeslots stream
+  Stream<List<Timeslot>> get timeSlots {
+    return (watchGroupCollection.document(watchGroupId).collection('timeslots').snapshots().map((QuerySnapshot qSnap) => qSnap.documents.map((DocumentSnapshot doc) => _timeSlotFromFirestore(doc)).toList()).first.asStream());
+  }
+
+
 
 
 
