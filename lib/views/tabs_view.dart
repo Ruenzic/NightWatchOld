@@ -15,6 +15,7 @@ import 'package:i_am_rich/models/watchgroup.dart';
 import 'package:i_am_rich/services/watchgroup_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:i_am_rich/models/timeslot.dart';
+import 'package:i_am_rich/services/schedule_service.dart';
 
 class TabsView extends StatefulWidget {
   TabsView({Key key, this.auth, this.userId, this.logoutCallback, this.watchGroupId})
@@ -44,7 +45,7 @@ class _TabsState extends State<TabsView> {
         providers: [
           StreamProvider<User>.value(value: UserService(userId: widget.userId).user),
           StreamProvider<WatchGroup>.value(value: WatchGroupService(watchGroupId: firebaseUser.displayName).watchGroup),
-          StreamProvider<List<Timeslot>>.value(value: WatchGroupService(watchGroupId: firebaseUser.displayName).timeSlots),
+          StreamProvider<List<Timeslot>>.value(value: ScheduleService(watchGroupId: firebaseUser.displayName).timeSlots),
         ],
 
 //    return StreamProvider<User>.value(

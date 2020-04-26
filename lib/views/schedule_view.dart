@@ -8,6 +8,7 @@ import 'package:i_am_rich/models/watchgroup.dart';
 import 'package:i_am_rich/models/timeslot.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:i_am_rich/services/watchgroup_service.dart';
+import 'package:i_am_rich/services/schedule_service.dart';
 
 class ScheduleView extends StatefulWidget {
   @override
@@ -75,13 +76,16 @@ class _ScheduleState extends State<ScheduleView> {
             startTime: timeSlot['startTime'],
             endTime: timeSlot['endTime'],
             numberUsers: timeSlot['numberUsers'],
-            id: timeSlot.documentID)
+            id: timeSlot.documentID,
+            signups: timeSlot['signups'],
+          )
         : null;
   }
 
   Widget showTimeslots() {
 //    List<Timeslot> timeslots = Provider.of<List<Timeslot>>(context, listen: true);
     User user = Provider.of<User>(context);
+    final firebaseUser = Provider.of<FirebaseUser>(context, listen: false);
 
     return new StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
@@ -94,6 +98,9 @@ class _ScheduleState extends State<ScheduleView> {
           List<Timeslot> timeslots = snapshot.data.documents
               .map((DocumentSnapshot doc) => _timeSlotFromFirestore(doc))
               .toList();
+
+          print(timeslots.first.signups['date']);
+          print(getWeekDates());
 
           // show list of timeslots or return text saying no timeslots
           if (timeslots.length == 0) {
@@ -217,26 +224,7 @@ class _ScheduleState extends State<ScheduleView> {
                               ),
                             ),
                           ),
-                          ButtonTheme(
-                            minWidth: 10,
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5.0)),
-                              elevation: 4.0,
-                              onPressed: () {
-//                          removeTimeSlot(i);
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                height: 50.0,
-                                child: Icon(
-                                  Icons.not_interested,
-                                  color: Colors.red,
-                                ),
-                              ),
-                              color: Colors.white,
-                            ),
-                          ),
+                          showScheduleButton(timeslot: timeslots.elementAt(i), date: currentDate(), userId: firebaseUser.uid, watchGroupId: firebaseUser.displayName),
                         ],
                       ),
                     ),
@@ -247,4 +235,71 @@ class _ScheduleState extends State<ScheduleView> {
           }
         });
   }
+
+  Widget showScheduleButton({timeslot: Timeslot, date: String, userId: String, watchGroupId: String}) {
+    ScheduleService scheduleService = ScheduleService(userId: userId, watchGroupId: watchGroupId);
+
+    if (timeslot.signups != null && timeslot.signups[date] != null && timeslot.signups[date].contains(userId)) {
+      return ButtonTheme(
+        minWidth: 10,
+        child: RaisedButton(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0)),
+          elevation: 4.0,
+          onPressed: () {
+            scheduleService.removeSignup(date: date, timeSlotId: timeslot.id);
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 50.0,
+            child: Icon(
+              Icons.not_interested,
+              color: Colors.red,
+            ),
+          ),
+          color: Colors.white,
+        ),
+      );
+    }
+    else{
+      return ButtonTheme(
+        minWidth: 10,
+        child: RaisedButton(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0)),
+          elevation: 4.0,
+          onPressed: () {
+            scheduleService.createSignup(date: date, timeSlotId: timeslot.id);
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 50.0,
+            child: Icon(
+              Icons.add_circle,
+              color: Colors.green,
+            ),
+          ),
+          color: Colors.white,
+        ),
+      );
+    }
+  }
+
+  currentDate() {
+    return DateTime.now().toString().split(' ')[0];
+  }
+
+  getWeekDates() {
+    var today = new DateTime.now();
+    List dates = [];
+    dates.add(today.toString().split(' ')[0]);
+
+    for (var i = 1; i <= 6; i++) {
+      var nextDate = today.add((new Duration(days: i)));
+      dates.add(nextDate.toString().split(' ')[0]);
+    }
+    return dates;
+  }
+
+
 }

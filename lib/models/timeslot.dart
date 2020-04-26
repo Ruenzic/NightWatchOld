@@ -4,8 +4,9 @@ class Timeslot {
   final String endTime;
   final int numberUsers;
   String id;
+  Map signups;
 
-  Timeslot({ this.startTime, this.endTime, this.numberUsers, this.id });
+  Timeslot({ this.startTime, this.endTime, this.numberUsers, this.id, this.signups });
 
   Map<String, dynamic> toJson() =>
     {
