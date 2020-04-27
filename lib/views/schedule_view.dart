@@ -20,6 +20,8 @@ class ScheduleView extends StatefulWidget {
 class _ScheduleState extends State<ScheduleView> {
   //  @override
 
+  var _day = 0;
+
   Widget build(BuildContext context) {
     User user = Provider.of<User>(context);
     WatchGroup watchGroup = Provider.of<WatchGroup>(context);
@@ -83,6 +85,7 @@ class _ScheduleState extends State<ScheduleView> {
   }
 
   Widget showTimeslots() {
+    List weekDays = getWeekDates();
 //    List<Timeslot> timeslots = Provider.of<List<Timeslot>>(context, listen: true);
     User user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context, listen: false);
@@ -119,6 +122,14 @@ class _ScheduleState extends State<ScheduleView> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    showPreviousDay(weekdays: weekDays, day: _day),
+                    showSelectedDay(weekdays: weekDays, day: _day),
+                    showNextDay(weekdays: weekDays, day: _day),
+                  ],
+                ),
                 // Heading
                 RaisedButton(
                   shape: RoundedRectangleBorder(
@@ -208,10 +219,17 @@ class _ScheduleState extends State<ScheduleView> {
                                             fontSize: 18.0),
                                       ),
                                       Text(
-                                        timeslots
-                                            .elementAt(i)
-                                            .numberUsers
-                                            .toString(),
+                                        getNumberSignups(
+                                                timeslot:
+                                                    timeslots.elementAt(i),
+                                                date: weekDays[_day]
+                                                    .toString()
+                                                    .split(' ')[0]) +
+                                            '/' +
+                                            timeslots
+                                                .elementAt(i)
+                                                .numberUsers
+                                                .toString(),
                                         style: TextStyle(
                                             color: Colors.teal,
                                             fontWeight: FontWeight.bold,
@@ -224,7 +242,11 @@ class _ScheduleState extends State<ScheduleView> {
                               ),
                             ),
                           ),
-                          showScheduleButton(timeslot: timeslots.elementAt(i), date: currentDate(), userId: firebaseUser.uid, watchGroupId: firebaseUser.displayName),
+                          showScheduleButton(
+                              timeslot: timeslots.elementAt(i),
+                              date: weekDays[_day].toString().split(' ')[0],
+                              userId: firebaseUser.uid,
+                              watchGroupId: firebaseUser.displayName),
                         ],
                       ),
                     ),
@@ -236,15 +258,127 @@ class _ScheduleState extends State<ScheduleView> {
         });
   }
 
-  Widget showScheduleButton({timeslot: Timeslot, date: String, userId: String, watchGroupId: String}) {
-    ScheduleService scheduleService = ScheduleService(userId: userId, watchGroupId: watchGroupId);
+  // Show a button showing previous or nothing if selected day is current date
+  Widget showPreviousDay({weekdays: List, day: num}) {
+    if (day > 0) {
+      return RaisedButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
+        elevation: 4.0,
+        child: Text(
+          '< ' + getShortWeekDay(dayOfWeek: weekdays[day - 1].weekday),
+          style: TextStyle(
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
+        ),
+        onPressed: previousDay,
+      );
+    } else {
+//      return Expanded(child: SizedBox());
+    return Container(height: 0, width: 0,);
+    }
+  }
 
-    if (timeslot.signups != null && timeslot.signups[date] != null && timeslot.signups[date].contains(userId)) {
+  // Show next or nothing if end of week days
+  Widget showNextDay({weekdays: List, day: num}) {
+    if (day < 6) {
+      return RaisedButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
+        elevation: 4.0,
+        child: Text(
+          getShortWeekDay(dayOfWeek: weekdays[day + 1].weekday) + ' >',
+          style: TextStyle(
+              color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 18.0),
+        ),
+        onPressed: nextDay,
+      );
+    } else {
+//      return Expanded(child: SizedBox());
+      return Container(height: 0, width: 0,);
+    }
+  }
+
+  // Show the day the user is viewing, 'Today' or 'Monday 18-07'
+  Widget showSelectedDay({weekdays: List, day: num}) {
+    var current = '';
+    if (weekdays[day].toString().split(' ')[0] == currentDate()) {
+      current = 'Today';
+    } else {
+      current = getShortWeekDay(dayOfWeek: weekdays[day].weekday);
+      current += ' ${weekdays[day].day}-${weekdays[day].month}';
+    }
+
+    return RaisedButton(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
+      elevation: 4.0,
+      child: Text(
+        current,
+        style: TextStyle(
+            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18.0),
+      ),
+    );
+  }
+
+  // Return the string day of week from int
+  getWeekDay({dayOfWeek: num}) {
+    if (dayOfWeek == 1) {
+      return 'Monday';
+    } else if (dayOfWeek == 2) {
+      return 'Tuesday';
+    } else if (dayOfWeek == 3) {
+      return 'Wednesday';
+    } else if (dayOfWeek == 4) {
+      return 'Thursday';
+    } else if (dayOfWeek == 5) {
+      return 'Friday';
+    } else if (dayOfWeek == 6) {
+      return 'Saturday';
+    } else if (dayOfWeek == 7) {
+      return 'Sunday';
+    }
+  }
+
+  // Return the short string day of week from int
+  getShortWeekDay({dayOfWeek: num}) {
+    if (dayOfWeek == 1) {
+      return 'Mon';
+    } else if (dayOfWeek == 2) {
+      return 'Tue';
+    } else if (dayOfWeek == 3) {
+      return 'Wed';
+    } else if (dayOfWeek == 4) {
+      return 'Thu';
+    } else if (dayOfWeek == 5) {
+      return 'Fri';
+    } else if (dayOfWeek == 6) {
+      return 'Sat';
+    } else if (dayOfWeek == 7) {
+      return 'Sun';
+    }
+  }
+
+  getNumberSignups({timeslot: Timeslot, date: String}) {
+    if (timeslot.signups != null && timeslot.signups[date] != null) {
+      return timeslot.signups[date].length.toString();
+    } else {
+      return '0';
+    }
+  }
+
+  Widget showScheduleButton(
+      {timeslot: Timeslot,
+      date: String,
+      userId: String,
+      watchGroupId: String}) {
+    ScheduleService scheduleService =
+        ScheduleService(userId: userId, watchGroupId: watchGroupId);
+
+    if (timeslot.signups != null &&
+        timeslot.signups[date] != null &&
+        timeslot.signups[date].contains(userId)) {
       return ButtonTheme(
         minWidth: 10,
         child: RaisedButton(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           elevation: 4.0,
           onPressed: () {
             scheduleService.removeSignup(date: date, timeSlotId: timeslot.id);
@@ -260,13 +394,16 @@ class _ScheduleState extends State<ScheduleView> {
           color: Colors.white,
         ),
       );
-    }
-    else{
+    } else if (timeslot.signups != null &&
+        timeslot.signups[date] != null &&
+        timeslot.signups[date].contains(userId) == false &&
+        int.parse(getNumberSignups(timeslot: timeslot, date: date)) <
+            timeslot.numberUsers) {
       return ButtonTheme(
         minWidth: 10,
         child: RaisedButton(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           elevation: 4.0,
           onPressed: () {
             scheduleService.createSignup(date: date, timeSlotId: timeslot.id);
@@ -282,6 +419,45 @@ class _ScheduleState extends State<ScheduleView> {
           color: Colors.white,
         ),
       );
+    } else if (timeslot.signups == null || timeslot.signups[date] == null) {
+      return ButtonTheme(
+        minWidth: 10,
+        child: RaisedButton(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          elevation: 4.0,
+          onPressed: () {
+            scheduleService.createSignup(date: date, timeSlotId: timeslot.id);
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 50.0,
+            child: Icon(
+              Icons.add_circle,
+              color: Colors.green,
+            ),
+          ),
+          color: Colors.white,
+        ),
+      );
+    } else {
+      return ButtonTheme(
+        minWidth: 10,
+        child: RaisedButton(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          elevation: 4.0,
+          child: Container(
+            alignment: Alignment.center,
+            height: 50.0,
+            child: Icon(
+              Icons.cancel,
+              color: Colors.grey,
+            ),
+          ),
+          color: Colors.white,
+        ),
+      );
     }
   }
 
@@ -292,14 +468,28 @@ class _ScheduleState extends State<ScheduleView> {
   getWeekDates() {
     var today = new DateTime.now();
     List dates = [];
-    dates.add(today.toString().split(' ')[0]);
+    dates.add(today);
 
     for (var i = 1; i <= 6; i++) {
       var nextDate = today.add((new Duration(days: i)));
-      dates.add(nextDate.toString().split(' ')[0]);
+      dates.add(nextDate);
     }
     return dates;
   }
 
+  nextDay() {
+    if (_day < 7) {
+      setState(() {
+        _day += 1;
+      });
+    }
+  }
 
+  previousDay() {
+    if (_day > 0) {
+      setState(() {
+        _day -= 1;
+      });
+    }
+  }
 }
