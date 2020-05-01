@@ -50,10 +50,13 @@ class _ScheduleState extends State<ScheduleView> {
           ],
         );
       } else {
-        return Column(
-          children: <Widget>[
-            showTimeslots(),
-          ],
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              showTimeslots(),
+            ],
+          ),
         );
       }
     }
