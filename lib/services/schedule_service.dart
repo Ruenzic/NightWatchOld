@@ -14,7 +14,8 @@ class ScheduleService{
 
 
   Timeslot _timeSlotFromFirestore(DocumentSnapshot timeSlot){
-    return timeSlot != null ? Timeslot(startTime: timeSlot['startTime'], endTime: timeSlot['endTime'], numberUsers: timeSlot['numberUsers'], id: timeSlot.documentID): null;
+//    print(Timeslot(startTime: timeSlot['startTime'], endTime: timeSlot['endTime'], numberUsers: timeSlot['numberUsers'], id: timeSlot.documentID, signups: timeSlot['signups']).signups);
+    return timeSlot != null ? Timeslot(startTime: timeSlot['startTime'], endTime: timeSlot['endTime'], numberUsers: timeSlot['numberUsers'], id: timeSlot.documentID, signups: timeSlot['signups']): null;
   }
 
   // get timeslots stream

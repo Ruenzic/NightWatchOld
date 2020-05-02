@@ -8,6 +8,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:i_am_rich/models/timeslot.dart';
+import 'package:i_am_rich/services/user_service.dart';
+import 'package:i_am_rich/services/watchgroup_service.dart';
 
 class MapView extends StatefulWidget {
   @override
@@ -113,9 +115,15 @@ class _MapState extends State<MapView> {
         ),
         margin: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
         child: Center(
-          child: Text(
-            "Swipe up for more details",
-            style: TextStyle(color: Colors.white),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              actionButton(),
+              Text(
+                "Swipe up for more details",
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
           ),
         ),
       ),
@@ -126,44 +134,80 @@ class _MapState extends State<MapView> {
     User user = Provider.of<User>(context);
     final firebaseUser = Provider.of<FirebaseUser>(context, listen: false);
     WatchGroup watchGroup = Provider.of<WatchGroup>(context);
-    List<Timeslot> activeTimeslots =
-        getActiveTimeslots(timeslots: watchGroup.timeslots);
+//    List<Timeslot> activeTimeslots =
+//        getActiveTimeslots(timeslots: watchGroup.timeslots);
 
-    return Container(
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(24.0)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 20.0,
-              color: Colors.grey,
+    return new StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection('watchGroups')
+            .document(user.watchGroupId)
+            .collection('timeslots')
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return new Text("There are no timeslots");
+          List<Timeslot> timeslots = snapshot.data.documents
+              .map((DocumentSnapshot doc) => _timeSlotFromFirestore(doc))
+              .toList();
+
+          List<Timeslot> activeTimeslots =
+              getActiveTimeslots(timeslots: timeslots);
+
+          return Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(24.0)),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 20.0,
+                    color: Colors.grey,
+                  ),
+                ]),
+            margin: const EdgeInsets.all(24.0),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  'Current Timeslots',
+                  style: new TextStyle(
+                    fontSize: 20.0,
+                    color: Colors.teal,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Column(
+                  children: new List.generate(
+                    activeTimeslots.length,
+                    (i) => Column(
+                      children: <Widget>[
+                        Text(activeTimeslots[i].startTime +
+                            ' - ' +
+                            activeTimeslots[i].endTime,
+                          style: new TextStyle(
+                            fontSize: 17.0,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),),
+                        Column(
+                          children: new List.generate(
+                            activeTimeslots[i].signups[getCurrentDate()].length,
+                            (j) => Column(children: <Widget>[
+                              userNameFromID(
+                                  userId: activeTimeslots[i]
+                                      .signups[getCurrentDate()][j]),
+                            ]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+//                Center(
+//                  child: Text(
+//                      "show current timeslot bracket - and who should be on watch and if they are currently on watch or not, later show call button to call each user on watch"),
+//                ),
+              ],
             ),
-          ]),
-      margin: const EdgeInsets.all(24.0),
-      child: Column(
-        children: <Widget>[
-          Text(
-            'Current Timeslots',
-            style: new TextStyle(
-              fontSize: 20.0,
-              color: Colors.teal,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Column(
-            children: new List.generate(
-                activeTimeslots.length,
-                (i) => Text(activeTimeslots[i].startTime +
-                    ' - ' +
-                    activeTimeslots[i].endTime)),
-          ),
-          Center(
-            child: Text(
-                "show current timeslot bracket - and who should be on watch and if they are currently on watch or not, later show call button to call each user on watch"),
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
 
   Timeslot _timeSlotFromFirestore(DocumentSnapshot timeSlot) {
@@ -254,5 +298,149 @@ class _MapState extends State<MapView> {
             {currentTimeslots.add(timeslot)}
         });
     return currentTimeslots;
+  }
+
+  Widget userNameFromID({userId: String}) {
+    UserService userService = new UserService(userId: userId);
+
+    return FutureBuilder<User>(
+        future: userService.userFromData(), //returns bool
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // YOUR CUSTOM CODE GOES HERE
+            if (snapshot.data.onWatch != null &&
+                snapshot.data.onWatch == true) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Text(snapshot.data.userName,
+                    style: new TextStyle(
+                      fontSize: 17.0,
+                      color: Colors.teal,
+                      fontWeight: FontWeight.bold,
+                    ),),
+                  Text(
+                    'Online',
+                    style: new TextStyle(
+                      fontSize: 17.0,
+                      color: Colors.greenAccent,
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Text(snapshot.data.userName,
+                    style: new TextStyle(
+                      fontSize: 17.0,
+                      color: Colors.teal,
+                      fontWeight: FontWeight.bold,
+                    ),),
+                  Text(
+                    'Offline',
+                    style: new TextStyle(
+                      fontSize: 17.0,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              );
+            }
+          } else {
+            return new CircularProgressIndicator();
+          }
+        });
+  }
+
+  // Call start watch on the userservice and the watchgroup service
+  startWatch() {
+    final user = Provider.of<FirebaseUser>(context, listen: false);
+    UserService userService = new UserService(userId: user.uid);
+    WatchGroupService watchGroupService =
+        new WatchGroupService(userId: user.uid, watchGroupId: user.displayName);
+
+    setState(() {
+      userService.startWatch();
+      watchGroupService.startWatch();
+    });
+
+  }
+
+  // Call stop watch on the userservice and the watchgroup service
+  stopWatch() {
+    final user = Provider.of<FirebaseUser>(context, listen: false);
+    UserService userService = new UserService(userId: user.uid);
+    WatchGroupService watchGroupService =
+        new WatchGroupService(userId: user.uid, watchGroupId: user.displayName);
+
+    setState(() {
+      userService.stopWatch();
+      watchGroupService.stopWatch();
+    });
+
+  }
+
+  Widget showStartWatchButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+//      child: SizedBox(
+//        height: 40.0,
+        child: new RaisedButton(
+          elevation: 1.0,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(
+                color: Colors.teal, width: 1, style: BorderStyle.solid),
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          color: Colors.white,
+          child: new Text(
+            'Start Watch',
+            style: new TextStyle(
+              fontSize: 20.0,
+              color: Colors.teal,
+            ),
+          ),
+          onPressed: startWatch,
+        ),
+//      ),
+    );
+  }
+
+  Widget showStopWatchButton() {
+    return new Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+//      child: SizedBox(
+//        height: 40.0,
+      child: new RaisedButton(
+        elevation: 1.0,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+              color: Colors.redAccent, width: 1, style: BorderStyle.solid),
+          borderRadius: BorderRadius.circular(5.0),
+        ),
+        color: Colors.white,
+        child: new Text(
+          'Stop Watch',
+          style: new TextStyle(
+            fontSize: 20.0,
+            color: Colors.redAccent,
+          ),
+        ),
+        onPressed: stopWatch,
+      ),
+//      ),
+    );
+  }
+
+  Widget actionButton(){
+    final user = Provider.of<User>(context);
+    if (user.onWatch == null || !user.onWatch){
+      return showStartWatchButton();
+    }
+    else{
+      return showStopWatchButton();
+    }
   }
 }

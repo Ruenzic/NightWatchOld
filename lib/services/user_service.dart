@@ -25,7 +25,7 @@ class UserService{
   }
 
   User _userFromFirestore(DocumentSnapshot user){
-    return user != null ? User(userName: user["name"], watchGroupId: user["watchGroupId"]): null;
+    return user != null ? User(userName: user["name"], watchGroupId: user["watchGroupId"], onWatch: user['onWatch']): null;
   }
 
   // get user stream
@@ -40,8 +40,9 @@ class UserService{
   Future<User> userFromData() async {
     DocumentSnapshot userRef = await userCollection.document(userId).get();
     User userInfo = new User(
-        userName: userRef.data["userName"],
-        watchGroupId: userRef.data["watchGroupId"]
+        userName: userRef.data["name"],
+        watchGroupId: userRef.data["watchGroupId"],
+        onWatch: userRef.data['onWatch']
     );
 
     return userInfo;
@@ -52,6 +53,21 @@ class UserService{
           userName: snapshot.data["userName"],
           watchGroupId: snapshot.data["watchGroupId"]
       );
+    });
+  }
+
+  // change onWatch bool on user object to true
+  startWatch() async{
+    await userCollection.document(userId).updateData({
+      'onWatch': true
+    });
+
+  }
+
+  // change onWatch bool on user object to false
+  stopWatch() async{
+    await userCollection.document(userId).updateData({
+      'onWatch': false
     });
   }
 

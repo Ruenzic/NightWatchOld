@@ -4,7 +4,7 @@ class Timeslot {
   final String endTime;
   final int numberUsers;
   String id;
-  Map signups;
+  Map<dynamic, dynamic> signups;
 
   Timeslot({ this.startTime, this.endTime, this.numberUsers, this.id, this.signups });
 
@@ -12,7 +12,8 @@ class Timeslot {
     {
       'startTime': startTime,
       'endTime': endTime,
-      'numberUsers': numberUsers
+      'numberUsers': numberUsers,
+      'signups': signups
     };
 
 //  List<Map<String, dynamic>> listOMaps = listOStuff

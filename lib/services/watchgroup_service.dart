@@ -37,7 +37,8 @@ class WatchGroupService{
   }
 
   WatchGroup _watchGroupFromFirestore(DocumentSnapshot watchGroup){
-    return watchGroup != null ? WatchGroup(name: watchGroup['name'], users: watchGroup['users'], adminId: watchGroup['admin'], isPrivate: watchGroup['isPrivate'], location: watchGroup['location'], timeslots: List<Timeslot>.from((watchGroup['timeslots'].map((e) => Timeslot(startTime: e['startTime'], endTime: e['endTime'], numberUsers: e['numberUsers']))).toList()), daysOfWeek: new Map<String, bool>.from(watchGroup['daysOfWeek']), latitude: watchGroup['latitude'], longitude: watchGroup['longitude']): null;
+    print(watchGroup['timeslots']);
+    return watchGroup != null ? WatchGroup(name: watchGroup['name'], users: watchGroup['users'], adminId: watchGroup['admin'], isPrivate: watchGroup['isPrivate'], location: watchGroup['location'], timeslots: List<Timeslot>.from((watchGroup['timeslots'].map((e) => Timeslot(startTime: e['startTime'], endTime: e['endTime'], numberUsers: e['numberUsers'], id: '', signups: e['signups']))).toList()), daysOfWeek: new Map<String, bool>.from(watchGroup['daysOfWeek']), latitude: watchGroup['latitude'], longitude: watchGroup['longitude']): null;
   }
 
   // get watchgroup stream
@@ -46,7 +47,21 @@ class WatchGroupService{
   }
 
 
+  // add user id to array in the watchgroup
+  startWatch() async{
+    await watchGroupCollection.document(watchGroupId).updateData({
+      'users_on_watch': FieldValue.arrayUnion([userId])
+    });
 
+
+  }
+
+  // remove user id from array in the watchgroup
+  stopWatch() async{
+    await watchGroupCollection.document(watchGroupId).updateData({
+      'users_on_watch': FieldValue.arrayRemove([userId])
+    });
+  }
 
 
 }

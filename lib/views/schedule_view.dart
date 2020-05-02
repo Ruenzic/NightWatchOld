@@ -105,7 +105,7 @@ class _ScheduleState extends State<ScheduleView> {
               .map((DocumentSnapshot doc) => _timeSlotFromFirestore(doc))
               .toList();
 
-          print(timeslots.first.signups['date']);
+//          print(timeslots.first.signups['date']);
           print(getWeekDates());
 
           // show list of timeslots or return text saying no timeslots
