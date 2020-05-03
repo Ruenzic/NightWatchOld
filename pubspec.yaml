@@ -32,6 +32,8 @@ dependencies:
   syncfusion_flutter_calendar: ^18.1.44-beta
   flutter_datetime_picker: 1.2.5
   sliding_up_panel: ^1.0.2
+  location: ^3.0.2
+  flutter_polyline_points: ^0.1.0
 
 dev_dependencies:
   flutter_test:

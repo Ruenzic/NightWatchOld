@@ -10,6 +10,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:i_am_rich/models/timeslot.dart';
 import 'package:i_am_rich/services/user_service.dart';
 import 'package:i_am_rich/services/watchgroup_service.dart';
+import 'package:location/location.dart';
 
 class MapView extends StatefulWidget {
   @override
@@ -22,6 +23,8 @@ class _MapState extends State<MapView> {
   //  @override
 
 //  Completer<GoogleMapController> _controller = Completer();
+
+  LocationData currentLocation;
 
   static LatLng _center;
 
@@ -165,6 +168,7 @@ class _MapState extends State<MapView> {
             margin: const EdgeInsets.all(24.0),
             child: Column(
               children: <Widget>[
+                Text('Swipe down to close'),
                 Text(
                   'Current Timeslots',
                   style: new TextStyle(
@@ -173,33 +177,7 @@ class _MapState extends State<MapView> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Column(
-                  children: new List.generate(
-                    activeTimeslots.length,
-                    (i) => Column(
-                      children: <Widget>[
-                        Text(activeTimeslots[i].startTime +
-                            ' - ' +
-                            activeTimeslots[i].endTime,
-                          style: new TextStyle(
-                            fontSize: 17.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),),
-                        Column(
-                          children: new List.generate(
-                            activeTimeslots[i].signups[getCurrentDate()].length,
-                            (j) => Column(children: <Widget>[
-                              userNameFromID(
-                                  userId: activeTimeslots[i]
-                                      .signups[getCurrentDate()][j]),
-                            ]),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                showActiveTimeslots(activeTimeslots: activeTimeslots),
 //                Center(
 //                  child: Text(
 //                      "show current timeslot bracket - and who should be on watch and if they are currently on watch or not, later show call button to call each user on watch"),
@@ -208,6 +186,64 @@ class _MapState extends State<MapView> {
             ),
           );
         });
+  }
+
+  Widget showActiveTimeslots({activeTimeslots: List}) {
+    if (activeTimeslots != null && activeTimeslots.length > 0) {
+      return Column(
+        children: new List.generate(
+          activeTimeslots.length,
+          (i) => Column(
+            children: <Widget>[
+              Text(
+                activeTimeslots[i].startTime +
+                    ' - ' +
+                    activeTimeslots[i].endTime,
+                style: new TextStyle(
+                  fontSize: 17.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              showSignedUpUsers(timeslot: activeTimeslots[i]),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Text(
+        'No active timeslots',
+        style: new TextStyle(
+          fontSize: 17.0,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+  }
+
+  Widget showSignedUpUsers({timeslot: Timeslot}) {
+    if (timeslot.signups != null &&
+        timeslot.signups[getCurrentDate()] != null &&
+        timeslot.signups[getCurrentDate()].length > 0) {
+      return Column(
+        children: new List.generate(
+          timeslot.signups[getCurrentDate()].length,
+          (j) => Column(children: <Widget>[
+            userNameFromID(userId: timeslot.signups[getCurrentDate()][j]),
+          ]),
+        ),
+      );
+    } else {
+      return Text(
+        'No users signed up',
+        style: new TextStyle(
+          fontSize: 17.0,
+          color: Colors.redAccent,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
   }
 
   Timeslot _timeSlotFromFirestore(DocumentSnapshot timeSlot) {
@@ -313,12 +349,14 @@ class _MapState extends State<MapView> {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Text(snapshot.data.userName,
+                  Text(
+                    snapshot.data.userName,
                     style: new TextStyle(
                       fontSize: 17.0,
                       color: Colors.teal,
                       fontWeight: FontWeight.bold,
-                    ),),
+                    ),
+                  ),
                   Text(
                     'Online',
                     style: new TextStyle(
@@ -332,12 +370,14 @@ class _MapState extends State<MapView> {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Text(snapshot.data.userName,
+                  Text(
+                    snapshot.data.userName,
                     style: new TextStyle(
                       fontSize: 17.0,
                       color: Colors.teal,
                       fontWeight: FontWeight.bold,
-                    ),),
+                    ),
+                  ),
                   Text(
                     'Offline',
                     style: new TextStyle(
@@ -365,7 +405,6 @@ class _MapState extends State<MapView> {
       userService.startWatch();
       watchGroupService.startWatch();
     });
-
   }
 
   // Call stop watch on the userservice and the watchgroup service
@@ -379,7 +418,6 @@ class _MapState extends State<MapView> {
       userService.stopWatch();
       watchGroupService.stopWatch();
     });
-
   }
 
   Widget showStartWatchButton() {
@@ -387,23 +425,23 @@ class _MapState extends State<MapView> {
       padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
 //      child: SizedBox(
 //        height: 40.0,
-        child: new RaisedButton(
-          elevation: 1.0,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-                color: Colors.teal, width: 1, style: BorderStyle.solid),
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          color: Colors.white,
-          child: new Text(
-            'Start Watch',
-            style: new TextStyle(
-              fontSize: 20.0,
-              color: Colors.teal,
-            ),
-          ),
-          onPressed: startWatch,
+      child: new RaisedButton(
+        elevation: 1.0,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+              color: Colors.teal, width: 1, style: BorderStyle.solid),
+          borderRadius: BorderRadius.circular(5.0),
         ),
+        color: Colors.white,
+        child: new Text(
+          'Start Watch',
+          style: new TextStyle(
+            fontSize: 20.0,
+            color: Colors.teal,
+          ),
+        ),
+        onPressed: startWatch,
+      ),
 //      ),
     );
   }
@@ -434,12 +472,11 @@ class _MapState extends State<MapView> {
     );
   }
 
-  Widget actionButton(){
+  Widget actionButton() {
     final user = Provider.of<User>(context);
-    if (user.onWatch == null || !user.onWatch){
+    if (user.onWatch == null || !user.onWatch) {
       return showStartWatchButton();
-    }
-    else{
+    } else {
       return showStopWatchButton();
     }
   }
