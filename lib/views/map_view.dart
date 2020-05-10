@@ -11,6 +11,9 @@ import 'package:i_am_rich/models/timeslot.dart';
 import 'package:i_am_rich/services/user_service.dart';
 import 'package:i_am_rich/services/watchgroup_service.dart';
 import 'package:location/location.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+
 
 class MapView extends StatefulWidget {
   @override
@@ -22,9 +25,18 @@ class MapView extends StatefulWidget {
 class _MapState extends State<MapView> {
   //  @override
 
-//  Completer<GoogleMapController> _controller = Completer();
 
+  GoogleMapController _controller;
+
+  // the user's initial location and current location
+  // as it moves
   LocationData currentLocation;
+
+  // wrapper around the location API
+  Location _locationTracker = Location();
+  Marker marker;
+  Circle circle;
+  StreamSubscription _locationSubscription;
 
   static LatLng _center;
 
@@ -82,7 +94,11 @@ class _MapState extends State<MapView> {
             child: Stack(
               children: <Widget>[
                 GoogleMap(
-//              onMapCreated: _onMapCreated,
+              onMapCreated: (GoogleMapController controller){
+                _controller = controller;
+              },
+                  markers: Set.of((marker != null) ? [marker] : []),
+//                  circles: Set.of((circle != null) ? [circle] : []),
                   initialCameraPosition: CameraPosition(
                     target: _center,
                     zoom: 11.0,
@@ -93,7 +109,7 @@ class _MapState extends State<MapView> {
                   child: Align(
                     alignment: Alignment.topRight,
                     child: FloatingActionButton(
-                      onPressed: () => print('button pressed'),
+                      onPressed: () => trackUser(),
                       materialTapTargetSize: MaterialTapTargetSize.padded,
                       backgroundColor: Colors.green,
                       child: const Icon(Icons.pin_drop, size: 36.0),
@@ -107,6 +123,118 @@ class _MapState extends State<MapView> {
       }
     }
   }
+
+  void trackUser() async {
+    try {
+
+      Uint8List imageData = await getMarker();
+      var location = await _locationTracker.getLocation();
+      print(location.toString());
+
+      updateMarkerAndCircle(location, imageData);
+
+      if (_locationSubscription != null) {
+        _locationSubscription.cancel();
+      }
+
+
+      _locationSubscription = _locationTracker.onLocationChanged.listen((newLocalData) {
+        if (_controller != null) {
+          _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
+              bearing: 192.8334901395799,
+              target: LatLng(newLocalData.latitude, newLocalData.longitude),
+              tilt: 0,
+              zoom: 18.00)));
+          updateMarkerAndCircle(newLocalData, imageData);
+          //  [TODO]
+          // When we update the current users location here, we need to save write this to firebase
+          // Probably just updating a variable, (or possibly in future, storing all the locations so later can generate a watch route)
+          // Once we have 1 user writing and sending, can work on another user being able to just listen to firebase and draw markers
+          // Need to look into user having full control of map, with a center button appearing if they move it like google maps does
+          // store under users_on_watch[]
+          // change string to a key and store {id: firebase_id, name: user_name, location: {latitude: 0, longitude: 0, heading: 0, accuracy: 0}}
+          // When we do startWatch() we need to first get user current location then create the entry in watchgroup
+          // So we can pass the other params with it
+          // Then just update it on onLocationChanged
+
+          print(newLocalData);
+          final user = Provider.of<FirebaseUser>(context, listen: false);
+          UserService userService = new UserService(userId: user.uid);
+          WatchGroupService watchGroupService =
+          new WatchGroupService(userId: user.uid, watchGroupId: user.displayName);
+          watchGroupService.updateUserPosition(newLocalData.latitude, newLocalData.longitude, newLocalData.heading, newLocalData.accuracy);
+
+        }
+      });
+
+    } on PlatformException catch (e) {
+      if (e.code == 'PERMISSION_DENIED') {
+        debugPrint("Permission Denied");
+      }
+    }
+  }
+
+  void updateMarkerAndCircle(LocationData newLocalData, Uint8List imageData) {
+    LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+    this.setState(() {
+      marker = Marker(
+          markerId: MarkerId("home"),
+          position: latlng,
+          rotation: newLocalData.heading,
+          draggable: false,
+          zIndex: 2,
+          flat: true,
+          anchor: Offset(0.5, 0.5),
+          icon: BitmapDescriptor.fromBytes(imageData));
+      circle = Circle(
+          circleId: CircleId("car"),
+          radius: newLocalData.accuracy,
+          zIndex: 1,
+          strokeColor: Colors.blue,
+          center: latlng,
+          fillColor: Colors.blue.withAlpha(70));
+    });
+  }
+
+  Future<Uint8List> getMarker() async {
+    ByteData byteData = await DefaultAssetBundle.of(context).load("assets/car_icon.png");
+    return byteData.buffer.asUint8List();
+  }
+
+  @override
+  void dispose() {
+    if (_locationSubscription != null) {
+      _locationSubscription.cancel();
+    }
+    super.dispose();
+  }
+
+//  @override
+//  void initState() {
+//    super.initState();
+//
+//    // create an instance of Location
+//    location = new Location();
+//
+//    // subscribe to changes in the user's location
+//    // by "listening" to the location's onLocationChanged event
+//    location.onLocationChanged.listen((LocationData cLoc) {
+//      // cLoc contains the lat and long of the
+//      // current user's position in real time,
+//      // so we're holding on to it
+//      currentLocation = cLoc;
+////      updatePinOnMap();
+//    });
+//    // set the initial location
+//    setInitialLocation();
+//  }
+//
+//  void setInitialLocation() async {
+//    // set the initial location by pulling the user's
+//    // current location from the location's getLocation()
+//    currentLocation = await location.getLocation();
+//
+//  }
 
   Widget _floatingCollapsed() {
     return Container(
@@ -215,7 +343,7 @@ class _MapState extends State<MapView> {
         'No active timeslots',
         style: new TextStyle(
           fontSize: 17.0,
-          color: Colors.black,
+          color: Colors.redAccent,
           fontWeight: FontWeight.bold,
         ),
       );
@@ -395,16 +523,26 @@ class _MapState extends State<MapView> {
   }
 
   // Call start watch on the userservice and the watchgroup service
-  startWatch() {
+  startWatch() async {
     final user = Provider.of<FirebaseUser>(context, listen: false);
     UserService userService = new UserService(userId: user.uid);
     WatchGroupService watchGroupService =
-        new WatchGroupService(userId: user.uid, watchGroupId: user.displayName);
+    new WatchGroupService(userId: user.uid, watchGroupId: user.displayName);
 
-    setState(() {
-      userService.startWatch();
-      watchGroupService.startWatch();
-    });
+    var location = await _locationTracker.getLocation();
+//    print(location.latitude.toString() + ' '  + location.longitude.toString() + ' ' + location.heading.toString() + ' ' + location.accuracy.toString());
+
+    if (location.latitude != null && location.longitude != null){
+      setState(() {
+        userService.startWatch();
+        watchGroupService.startWatch(location.latitude, location.longitude, location.heading, location.accuracy);
+      });
+      trackUser();
+    }
+    else{
+      //[TODO] show error message to user saying cant get location
+    }
+
   }
 
   // Call stop watch on the userservice and the watchgroup service
@@ -417,10 +555,15 @@ class _MapState extends State<MapView> {
     setState(() {
       userService.stopWatch();
       watchGroupService.stopWatch();
+      marker = null;
+      circle = null;
     });
+    _locationSubscription.cancel();
+
   }
 
   Widget showStartWatchButton() {
+    //[TODO] Dont show start watch button if user isnt signed up for watch session
     return new Padding(
       padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
 //      child: SizedBox(

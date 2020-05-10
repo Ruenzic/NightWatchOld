@@ -48,20 +48,75 @@ class WatchGroupService{
 
 
   // add user id to array in the watchgroup
-  startWatch() async{
+  startWatch(double latitude, double longitude, double heading, double accuracy) async{
+    UserService userService = new UserService(userId: userId);
+    String userName;
+    await userService.userFromData().then((value) => print(
+      userName = value.userName
+    ));
+
     await watchGroupCollection.document(watchGroupId).updateData({
-      'users_on_watch': FieldValue.arrayUnion([userId])
+      'users_on_watch': FieldValue.arrayUnion([
+        {'id': userId, 'name': userName, 'location': {'latitude': latitude, 'longitude': longitude, 'heading': heading, 'accuracy': accuracy}}
+      ])
     });
-
-
   }
 
   // remove user id from array in the watchgroup
   stopWatch() async{
-    await watchGroupCollection.document(watchGroupId).updateData({
-      'users_on_watch': FieldValue.arrayRemove([userId])
-    });
+//    await watchGroupCollection.document(watchGroupId).updateData({
+//      'users_on_watch': FieldValue.arrayRemove([userId])
+//    });
+
+    Firestore.instance.runTransaction((transaction) =>
+      transaction.get(watchGroupCollection.document(watchGroupId)).then((value) => {
+        transaction.update(watchGroupCollection.document((watchGroupId)), removeUserOnWatch(value.data))
+      })
+    );
   }
+
+  updateUserPosition(double latitude, double longitude, double heading, double accuracy) async{
+    Firestore.instance.runTransaction((transaction) =>
+        transaction.get(watchGroupCollection.document(watchGroupId)).then((value) => {
+          transaction.update(watchGroupCollection.document((watchGroupId)), changePosition(value.data, latitude, longitude, heading, accuracy))
+        })
+    );
+  }
+
+  Map changePosition(watchGroup, double latitude, double longitude, double heading, double accuracy){
+    watchGroup['users_on_watch'].forEach((element) {
+      if (element['id'] == userId){
+        element['location']['latitude'] = latitude;
+        element['location']['longitude'] = longitude;
+        element['location']['heading'] = heading;
+        element['location']['accuracy'] = accuracy;
+      }
+    });
+    return watchGroup;
+  }
+
+  Map removeUserOnWatch(value){
+    List<Map> users_on_watch_new = List();
+    List users_on_watch = value['users_on_watch'];
+
+    users_on_watch.forEach((element) {
+      users_on_watch_new.add(element);
+    });
+
+    var toRemove = [];
+
+    users_on_watch_new.forEach((element) {
+      if (element['id'] == userId){
+        toRemove.add(element);
+      }
+    });
+    users_on_watch_new.removeWhere( (e) => toRemove.contains(e));
+
+    value['users_on_watch'] = users_on_watch_new;
+    return value;
+  }
+
+
 
 
 }
